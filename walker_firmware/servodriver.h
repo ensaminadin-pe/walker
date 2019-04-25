@@ -20,16 +20,24 @@
 class ServoDriver
 {
 	public:
-		ServoDriver(
-				uint8	  _driver_count = 1,
-				float _frequency = SERVO_DRIVER_DEFAULT_FREQUENCY,
-				float _min_angle = SERVO_DRIVER_DEFAULT_MIN_ANGLE,
-				float _max_angle = SERVO_DRIVER_DEFAULT_MAX_ANGLE,
-				float _offset = SERVO_DRIVER_DEFAULT_OFFSET);
+		//Constructor & destructor
+		ServoDriver();
 		~ServoDriver();
+		//Methods
+		// - Setter & getters
+		void setServoCount(uint16 _servo_count);
+		void setDriverCount(uint8 _driver_count);
+		uint8 getDriverCount() { return driver_count; }
+
+		void setFrequency(float _frequency);
+
 		void setupPulseRange(uint16 min, uint16 max);
-		void setupAngleRange(float min, float max);
 		uint16 getMiddlePulseWidth();
+
+		void setupAngleRange(float min, float max);
+
+		// - Actions
+		void initDrivers();
 		void setServo(uint16 index, uint16 angle);
 		int angleToPulseWidth(uint16 angle);
 	private:
@@ -50,7 +58,6 @@ class ServoDriver
 
 		//Methods
 		void clearDrivers();
-		void initDrivers();
 };
 
 #endif // SERVODRIVER_H

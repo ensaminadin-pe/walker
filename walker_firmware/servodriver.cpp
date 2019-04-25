@@ -2,24 +2,36 @@
 #include "arduinopolyfill.h"
 #include <stdlib.h>
 
-ServoDriver::ServoDriver(uint8 _driver_count, float _frequency, float _min_angle, float _max_angle, float _offset)
+ServoDriver::ServoDriver()
 {
-	driver_count = driver_count;
-	frequency = _frequency;
+	driver_count = 0;
+	frequency = SERVO_DRIVER_DEFAULT_FREQUENCY;
 	setupPulseRange(SERVO_DRIVER_DEFAULT_MIN_PULSE, SERVO_DRIVER_DEFAULT_MAX_PULSE);
-	setupAngleRange(_min_angle, _max_angle);
-	offset = _offset;
+	setupAngleRange(SERVO_DRIVER_DEFAULT_MIN_ANGLE, SERVO_DRIVER_DEFAULT_MAX_ANGLE);
 	drivers = 0;
-
-	initDrivers();
-	#ifndef IS_QT
-		delay(10); // Need some time to init
-	#endif
 }
 
 ServoDriver::~ServoDriver()
 {
 	clearDrivers();
+}
+
+void ServoDriver::setServoCount(uint16 _servo_count)
+{
+	int _driver_count = _servo_count / SERVO_DRIVER_CAPACITY;
+	if (_servo_count - (_driver_count * SERVO_DRIVER_CAPACITY) > 0)
+		_driver_count++;
+	driver_count = _driver_count;
+}
+
+void ServoDriver::setDriverCount(uint8 _driver_count)
+{
+	driver_count = _driver_count;
+}
+
+void ServoDriver::setFrequency(float _frequency)
+{
+	frequency = _frequency;
 }
 
 void ServoDriver::setupPulseRange(uint16 min, uint16 max)
@@ -47,6 +59,11 @@ uint16 ServoDriver::getMiddlePulseWidth()
 	return (uint16)(((int)min_pulse_width + (int)max_pulse_width) / 2);
 }
 
+/**
+ * @brief ServoDriver::setServo Set a target servo to a given angle
+ * @param index
+ * @param angle
+ */
 void ServoDriver::setServo(uint16 index, uint16 angle)
 {
 	//1) Locate the driver
@@ -59,18 +76,22 @@ void ServoDriver::setServo(uint16 index, uint16 angle)
 		angle = max_angle;
 	if (angle < min_angle)
 		angle = min_angle;
-	angle += offset;
 
 	//3) Set pwm on target driver's index
 	index -= (driver_index * SERVO_DRIVER_CAPACITY);
 
-	drivers[driver_index]->setPWM(index, 0, angle);
+	drivers[driver_index]->setPWM(index, 0, angleToPulseWidth(angle));
 }
 
+/**
+ * @brief ServoDriver::angleToPulseWidth Convert an angle to a correct PWM pulse width
+ * @param angle
+ * @return
+ */
 int ServoDriver::angleToPulseWidth(uint16 angle)
 {
-	int pulse_wide = (angle - min_angle) * median_pulse_width / median_angle + min_pulse_width;
-	return int(float(pulse_wide) / 1000000 * frequency * SERVO_DRIVER_TOTAL_PULSE);
+	float pulse_wide = (float)((angle - min_angle) * median_pulse_width / median_angle + min_pulse_width);
+	return (int)(pulse_wide / 1000000 * frequency * SERVO_DRIVER_TOTAL_PULSE);
 }
 
 void ServoDriver::clearDrivers()
@@ -111,5 +132,8 @@ void ServoDriver::initDrivers()
 		//2.3) Init new driver
 		drivers[i]->begin();
 		drivers[i]->setPWMFreq(frequency);
+		#ifndef IS_QT
+			delay(10); // Need some time to init
+		#endif
 	}
 }

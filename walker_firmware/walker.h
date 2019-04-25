@@ -6,6 +6,7 @@
 #include "oscillator.h"
 #include "types.h"
 #include "gait.h"
+#include "servodriver.h"
 
 class Walker
 {
@@ -41,6 +42,7 @@ class Walker
 		WalkerJoint**	joints;			//Walker joints
 		Gait*			gait;			//Active gait configuration
 		Gait*			next_gait;		//Next gait
+		ServoDriver		servoDriver;	//Main servo driver
 
 		float			speed_multiplier;	//Oscillator period modifier
 		uint8			leg_count;			//Number of legs
