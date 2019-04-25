@@ -16,7 +16,8 @@ SOURCES += \
     gaitdictionarymgr.cpp \
     arduinopolyfill.cpp \
     mainfunctions.cpp \
-    stdpolyfill.cpp
+    stdpolyfill.cpp \
+    servodriver.cpp
 
 HEADERS += \
     oscillator.h \
@@ -32,4 +33,5 @@ HEADERS += \
     arduinopolyfill.h \
     config.h \
     mainfunctions.h \
-    stdpolyfill.h
+    stdpolyfill.h \
+    servodriver.h

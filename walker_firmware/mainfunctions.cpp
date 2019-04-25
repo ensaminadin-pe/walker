@@ -22,7 +22,8 @@ void main_setup()
 	printf("Walker is init !\n");
 	//3) Setup default Gait for number of legs and joint
 	//   default should be stand position for calibration
-	sWalker->setNextGait(sGaitDictionary->getDefaultGait());
+	Gait* gait = sGaitDictionary->getDefaultGait();
+	sWalker->setNextGait(gait);
 }
 
 void main_loop()

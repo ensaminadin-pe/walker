@@ -279,6 +279,8 @@ void Walker::loadNextGait()
 void Walker::setNextGait(Gait *_gait)
 {
 	//1) Check gait validity
+	if (!_gait)
+		return;
 	if (
 		(gait && gait->getId() == _gait->getId()) || //Cannot set the same gait twice
 		(_gait->getLegCount() != getLegCount() || _gait->getJointCount() != getJointCount()) //Gait doesn't fit

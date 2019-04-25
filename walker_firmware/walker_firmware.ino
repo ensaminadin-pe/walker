@@ -3,6 +3,8 @@
 #include "mainfunctions.h"
 #include "config.h"
 
+//Install https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library
+
 void setup()
 {
 	Serial.begin(BAUD_RATE);

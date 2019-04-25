@@ -12,5 +12,7 @@
 #define MIN_GAIT_SPEED	0.5f
 #define MAX_GAIT_SPEED	1.5f
 #define GAIT_SPEED_INCREMENT 0.1f
+// Servos
+#define SERVO_UPDATE_FREQUENCY 60 //60Hz
 
 #endif // CONFIG
