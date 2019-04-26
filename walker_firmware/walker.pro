@@ -12,12 +12,12 @@ SOURCES += \
     walkerleg.cpp \
     walkerjoint.cpp \
     gaitdictionary.cpp \
-    gaits/gaitdictionary_4_2.cpp \
     gaitdictionarymgr.cpp \
     arduinopolyfill.cpp \
     mainfunctions.cpp \
     stdpolyfill.cpp \
-    servodriver.cpp
+    servodriver.cpp \
+    gaitdictionary_4_2.cpp
 
 HEADERS += \
     oscillator.h \
@@ -25,13 +25,13 @@ HEADERS += \
     walker.h \
     walkerleg.h \
     walkerjoint.h \
-    gaits/gaits_4_2.h \
     gaitdictionary.h \
-    gaits/gaitdictionary_4_2.h \
     types.h \
     gaitdictionarymgr.h \
     arduinopolyfill.h \
     config.h \
     mainfunctions.h \
     stdpolyfill.h \
-    servodriver.h
+    servodriver.h \
+    gaitdictionary_4_2.h \
+    gaits_4_2.h

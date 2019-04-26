@@ -1,6 +1,7 @@
 #include "servodriver.h"
 #include "arduinopolyfill.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 ServoDriver::ServoDriver()
 {
@@ -14,6 +15,17 @@ ServoDriver::ServoDriver()
 ServoDriver::~ServoDriver()
 {
 	clearDrivers();
+}
+
+/**
+ * @brief ServoDriver::instance Static singleton getter
+ * @return
+ */
+ServoDriver *ServoDriver::instance()
+{
+	//Static getter to allow access everywhere, singleton
+	static ServoDriver instance;
+	return &instance;
 }
 
 void ServoDriver::setServoCount(uint16 _servo_count)
@@ -51,7 +63,7 @@ void ServoDriver::setupAngleRange(float min, float max)
 
 	min_angle = min;
 	max_angle = max;
-	median_angle = max_angle - min_angle;
+	median_angle = (max_angle - min_angle) / 2;
 }
 
 uint16 ServoDriver::getMiddlePulseWidth()
@@ -79,7 +91,7 @@ void ServoDriver::setServo(uint16 index, uint16 angle)
 
 	//3) Set pwm on target driver's index
 	index -= (driver_index * SERVO_DRIVER_CAPACITY);
-
+	printf("Set servo %i to angle %i with pulse width %i\n", index, angle, angleToPulseWidth(angle));
 	drivers[driver_index]->setPWM(index, 0, angleToPulseWidth(angle));
 }
 
@@ -90,8 +102,7 @@ void ServoDriver::setServo(uint16 index, uint16 angle)
  */
 int ServoDriver::angleToPulseWidth(uint16 angle)
 {
-	float pulse_wide = (float)((angle - min_angle) * median_pulse_width / median_angle + min_pulse_width);
-	return (int)(pulse_wide / 1000000 * frequency * SERVO_DRIVER_TOTAL_PULSE);
+	return (float)((angle - min_angle) * median_pulse_width / median_angle + min_pulse_width);
 }
 
 void ServoDriver::clearDrivers()

@@ -8,6 +8,8 @@
 	#include <Adafruit_PWMServoDriver.h>
 #endif
 
+#include "types.h"
+
 #define SERVO_DRIVER_DEFAULT_FREQUENCY	60.0f
 #define SERVO_DRIVER_DEFAULT_MIN_ANGLE	0.0f
 #define SERVO_DRIVER_DEFAULT_MAX_ANGLE	180.0f
@@ -25,6 +27,7 @@ class ServoDriver
 		~ServoDriver();
 		//Methods
 		// - Setter & getters
+		static ServoDriver* instance();
 		void setServoCount(uint16 _servo_count);
 		void setDriverCount(uint8 _driver_count);
 		uint8 getDriverCount() { return driver_count; }
@@ -54,10 +57,12 @@ class ServoDriver
 
 		//Stored for faster angle to pulse conversion
 		uint16	median_pulse_width;
-		uint16	median_angle;
+		float	median_angle;
 
 		//Methods
 		void clearDrivers();
 };
+
+#define sServoDriver ServoDriver::instance()
 
 #endif // SERVODRIVER_H

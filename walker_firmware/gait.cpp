@@ -9,7 +9,7 @@ Gait::Gait(uint8 _id)
 	amplitudes = NULL;
 	offsets = NULL;
 	phases = NULL;
-	type = GaitType::IDLE;
+	type = GAIT_IDLE;
 	iterations = 0;
 }
 
@@ -42,10 +42,10 @@ void Gait::setId(uint8 _id)
  */
 void Gait::setup()
 {
-	size_t memory_size = (size_t)(getTotalCount() / 2);
+	size_t memory_size = (size_t)(getTotalCount());
 
-	periods = (uint16*)malloc(sizeof (uint16) * memory_size);
-	amplitudes = (int8*)malloc(sizeof (int8) * memory_size);
+	periods = (uint16*)malloc(sizeof (uint16) * memory_size * 2);
+	amplitudes = (int8*)malloc(sizeof (int8) * memory_size * 2);
 	offsets = amplitudes + memory_size;
 	phases = periods + memory_size;
 

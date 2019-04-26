@@ -1,8 +1,27 @@
 #include "gaitdictionary_4_2.h"
 #include "gaits_4_2.h"
 #include <unistd.h>
+#include <stdio.h>
 
 #define GAIT_4_2_COUNT 1
+
+GaitDictionary_4_2::GaitDictionary_4_2(void) : GaitDictionary()
+{
+
+}
+
+GaitDictionary_4_2::~GaitDictionary_4_2()
+{
+
+}
+
+Gait *GaitDictionary_4_2::getDefaultGait()
+{
+	static Gait* defaultGait;
+	if (!defaultGait)
+		defaultGait = getGait(1);
+	return defaultGait;
+}
 
 Gait* GaitDictionary_4_2::getGait(uint8 id)
 {

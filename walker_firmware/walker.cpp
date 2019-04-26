@@ -151,9 +151,9 @@ void Walker::init()
 	}
 
 	//4) Setup servo driver
-	servoDriver.setServoCount(getTotalCount());
-	servoDriver.setupAngleRange(-90.0f, 90.0f);
-	servoDriver.initDrivers();
+	sServoDriver->setServoCount(getTotalCount());
+	sServoDriver->setupAngleRange(-90.0f, 90.0f);
+	sServoDriver->initDrivers();
 }
 
 /**
@@ -199,8 +199,11 @@ void Walker::update(int diff)
 			clearGait();
 			loadNextGait();
 		}
-		//2) Update Oscillators & servos
-		updateServoPositions();
+		if (gait)
+		{
+			//2) Update Oscillators & servos
+			updateServoPositions();
+		}
 		//3) Reset timer
 		update_timer = UPDATE_SPEED;
 	}
@@ -223,7 +226,7 @@ void Walker::updateServoPositions()
 	for (uint16 i = 0; i < (getTotalCount()); i++)
 	{
 		if (oscillators[i])
-			servoDriver.setServo(i, oscillators[i]->refresh());
+			sServoDriver->setServo(i, oscillators[i]->refresh());
 	}
 
 }

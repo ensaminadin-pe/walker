@@ -1,6 +1,7 @@
-#include "gaitdictionarymgr.h"
-#include "gaits/gaitdictionary_4_2.h"
 #include "walker.h"
+#include "gaitdictionarymgr.h"
+#include "gaitdictionary_4_2.h"
+#include <stdio.h>
 
 GaitDictionaryMgr::GaitDictionaryMgr()
 {
@@ -49,8 +50,10 @@ GaitDictionary* GaitDictionaryMgr::getDictionaryFor(uint8 leg_count, uint8 joint
 	{
 		if (joint_count == 2)
 		{
-			static GaitDictionary_4_2 dictionary_4_2;
-			return &dictionary_4_2;
+			static GaitDictionary_4_2* dictionary_4_2;
+			if (!dictionary_4_2)
+				dictionary_4_2 = new GaitDictionary_4_2();
+			return dictionary_4_2;
 		}
 	}
 

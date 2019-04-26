@@ -2,13 +2,15 @@
 #define GAITDICTIONARY_H
 
 #include "gait.h"
+#include "types.h"
 
 class GaitDictionary
 {
 	public:
 		GaitDictionary();
-		Gait* getDefaultGait();
-		Gait* getGait(int id);
+		virtual ~GaitDictionary();
+		virtual Gait* getDefaultGait() = 0;
+		virtual Gait* getGait(uint8 id) = 0;
 };
 
 #endif // GAITDICTIONARY_H

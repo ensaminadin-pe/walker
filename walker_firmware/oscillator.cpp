@@ -53,20 +53,20 @@ float Oscillator::refresh()
 
 void Oscillator::handleFlag()
 {
-	if (_flag == OscillatorFlags::OSCILLATE)
+	if (_flag == OSCILLATE_NORMAL)
 		return;
 
-	if (_output < 0 && _flag & OscillatorFlags::OSCILLATE_POSITIVE)
+	if (_output < 0 && _flag & OSCILLATE_POSITIVE)
 		_output = -_output;
-	if (_output > 0 && _flag & OscillatorFlags::OSCILLATE_NEGATIVE)
+	if (_output > 0 && _flag & OSCILLATE_NEGATIVE)
 		_output = -_output;
-	if (_output > 0 && _flag & OscillatorFlags::OSCILLATE_INVERT_POSITIVE)
+	if (_output > 0 && _flag & OSCILLATE_INVERT_POSITIVE)
 		_output = -_output;
-	if (_output < 0 && _flag & OscillatorFlags::OSCILLATE_INVERT_NEGATIVE)
+	if (_output < 0 && _flag & OSCILLATE_INVERT_NEGATIVE)
 		_output = -_output;
-	if (_output < 0 && _flag & OscillatorFlags::OSCILLATE_ONLY_POSITIVE)
+	if (_output < 0 && _flag & OSCILLATE_ONLY_POSITIVE)
 		_output = 0;
-	if (_output > 0 && _flag & OscillatorFlags::OSCILLATE_ONLY_NEGATIVE)
+	if (_output > 0 && _flag & OSCILLATE_ONLY_NEGATIVE)
 		_output = 0;
 }
 

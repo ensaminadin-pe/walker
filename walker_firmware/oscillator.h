@@ -15,7 +15,7 @@
 
 enum OscillatorFlags: uint8
 {
-	OSCILLATE = 0, //Regular oscillation
+	OSCILLATE_NORMAL = 0, //Regular oscillation
 	OSCILLATE_POSITIVE = 1, //Only positive
 	OSCILLATE_NEGATIVE = 2, //Only negative
 	OSCILLATE_INVERT_POSITIVE = 4, //Turn positive into negative
