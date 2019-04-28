@@ -2,6 +2,7 @@
 #define GAIT_H
 
 #include "types.h"
+#include "stdio.h"
 
 enum GaitType: uint8
 {
@@ -13,23 +14,23 @@ enum GaitType: uint8
 class Gait
 {
 	public:
-		Gait(uint8 _id = 0);
+		Gait(uint16 _id = 0);
 		~Gait();
-		uint8		getId()			{ return id; }
+		uint16		getId()			{ return id; }
 		uint8		getLegCount()	{ return leg_count; }
 		uint8		getJointCount()	{ return joint_count; }
 		GaitType	getType()		{ return  GAIT_IDLE; }
 		uint8		getIterations()	{ return  iterations; }
 		uint16		getTotalCount() { return (uint16)leg_count * (uint16)joint_count; }
 		//Methods
-		void		setId(uint8 _id);
+		void		setId(uint16 _id);
 		uint16		getPeriod(uint8 index);
 		int8		getAmplitude(uint8 index);
 		int8		getOffset(uint8 index);
 		uint16		getPhase(uint8 index);
 	protected:
 		//Properties
-		uint8		id;			// Dictionary id
+		uint16		id;			// Dictionary id
 		uint8		leg_count;	// Required number of legs
 		uint8		joint_count;// Number of joint per leg
 		uint8		type;		// Gait type : idle, walk or emote
@@ -60,14 +61,17 @@ class Gait
 		void setPhases(uint16* _phases);
 		void setPhase(int index, uint16 phase);
 		void fillPhases(uint16 phase);
+
+		void setupServo(int index, uint16 period, uint16 amplitude, uint16 offset, uint16 phase);
 };
 
 //1 2 4 8 16 32 64 128
 class Gait_4_2: public Gait
 { //4 legs and 2 joint per leg
 	public:
-		Gait_4_2(uint8 _id = 0): Gait(_id)
+		Gait_4_2(uint16 _id = 0): Gait(_id)
 		{
+			printf("G\n");
 			leg_count = 4;
 			joint_count = 2;
 			setup();
@@ -77,7 +81,7 @@ class Gait_4_2: public Gait
 class Gait_4_3: public Gait
 { //4 legs and 3 joints per leg
 	public:
-		Gait_4_3(uint8 _id = 0): Gait(_id)
+		Gait_4_3(uint16 _id = 0): Gait(_id)
 		{
 			leg_count = 4;
 			joint_count = 3;
@@ -88,7 +92,7 @@ class Gait_4_3: public Gait
 class Gait_6_2: public Gait
 { //6 legs and 2 joint per leg
 	public:
-		Gait_6_2(uint8 _id = 0): Gait(_id)
+		Gait_6_2(uint16 _id = 0): Gait(_id)
 		{
 			leg_count = 6;
 			joint_count = 2;
@@ -99,7 +103,7 @@ class Gait_6_2: public Gait
 class Gait_6_3: public Gait
 { //6 legs and 3 joint per leg
 	public:
-		Gait_6_3(uint8 _id = 0): Gait(_id)
+		Gait_6_3(uint16 _id = 0): Gait(_id)
 		{
 			leg_count = 6;
 			joint_count = 3;

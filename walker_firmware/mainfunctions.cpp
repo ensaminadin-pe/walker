@@ -44,17 +44,17 @@ void main_setup()
 	//  This is the tricky part, you need to find the 0 and 180° pulse width yourself
 	//	Its a number between 0 and 4095 and, for my sg90s it's 145 and 515 at 60Hz
 	sServoDriver->setFrequency(60); //60Hz
+	sServoDriver->setupAngleRange(-90.0f, 90.0f);
 	sServoDriver->setupPulseRange(145, 515); //0° and 180°
 	printf("Walker is init !\n");
 	//4) Setup default Gait for number of legs and joint
 	//   default should be stand position for calibration
-	//sWalker->setNextGait(sGaitDictionary->getDefaultGait());
+	sWalker->setNextGait(sGaitDictionary->getDefaultGait());
 }
 
 void main_loop()
 { //Arduino like loop
-
-
+	/*
 	sServoDriver->setServo(0, 90);
 	delay(2000);
 	sServoDriver->setServo(0, 0);
@@ -64,6 +64,7 @@ void main_loop()
 	sServoDriver->setServo(0, 0);
 	delay(2000);
 	return;
+	*/
 
 	//1) Setup loop diff time
 	if (update_time == 0)

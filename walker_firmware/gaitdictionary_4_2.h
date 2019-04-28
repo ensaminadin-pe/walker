@@ -9,7 +9,7 @@ class GaitDictionary_4_2: public GaitDictionary
 		GaitDictionary_4_2(void);
 		~GaitDictionary_4_2() override;
 		Gait* getDefaultGait() override;
-		Gait* getGait(uint8 id) override;
+		Gait* getGait(uint16 id) override;
 };
 
 #endif // GAITDICTIONARY_4_2_H

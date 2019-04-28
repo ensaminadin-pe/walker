@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+using namespace std;
+
 /***
  * Walker
  *
@@ -29,6 +31,10 @@ Walker::Walker()
 	leg_count			= 0;
 	joint_count			= 0;
 	update_timer		= UPDATE_SPEED;
+
+	#ifdef OUTPUT_POSITION_TO_FILE
+		outputFile = fopen("output.txt", "w+");
+	#endif
 }
 
 Walker::~Walker()
@@ -225,10 +231,22 @@ void Walker::updateServoPositions()
 
 	for (uint16 i = 0; i < (getTotalCount()); i++)
 	{
-		if (oscillators[i])
-			sServoDriver->setServo(i, oscillators[i]->refresh());
-	}
 
+		if (oscillators[i])
+		{
+			#ifdef OUTPUT_POSITION_TO_FILE
+			if (i == 0)
+				fprintf(outputFile, "%i\t%i\t", oscillators[i]->getModifiedPeriod(), oscillators[i]->getDeltaTime());
+			#endif
+			sServoDriver->setServo(i, oscillators[i]->refresh());
+			#ifdef OUTPUT_POSITION_TO_FILE
+				fprintf(outputFile, "%f\t", oscillators[i]->getOutput());
+			#endif
+		}
+	}
+	#ifdef OUTPUT_POSITION_TO_FILE
+		fputc('\n', outputFile);
+	#endif
 }
 
 /**

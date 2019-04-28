@@ -1,6 +1,7 @@
 #include "gait.h"
 #include "config.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 Gait::Gait(uint8 _id)
 {
@@ -29,7 +30,7 @@ Gait::~Gait()
 	phases = NULL;
 }
 
-void Gait::setId(uint8 _id)
+void Gait::setId(uint16 _id)
 {
 	if (id)
 		return;
@@ -164,6 +165,14 @@ void Gait::fillPhases(uint16 phase)
 {
 	for (uint16 i = 0; i < getTotalCount(); i++)
 		phases[i] = phase;
+}
+
+void Gait::setupServo(int index, uint16 period, uint16 amplitude, uint16 offset, uint16 phase)
+{
+	setPeriod(index, period);
+	setAmplitude(index, amplitude);
+	setOffset(index, offset);
+	setPhase(index, phase);
 }
 
 uint16 Gait::getPhase(uint8 index)

@@ -53,7 +53,8 @@ void ServoDriver::setupPulseRange(uint16 min, uint16 max)
 
 	min_pulse_width = min;
 	max_pulse_width = max;
-	median_pulse_width = max_pulse_width - min_pulse_width;
+	total_pulse_range = (max_pulse_width - min_pulse_width);
+	angle_factor = (float)total_pulse_range / 180.0f;
 }
 
 void ServoDriver::setupAngleRange(float min, float max)
@@ -63,12 +64,6 @@ void ServoDriver::setupAngleRange(float min, float max)
 
 	min_angle = min;
 	max_angle = max;
-	median_angle = (max_angle - min_angle) / 2;
-}
-
-uint16 ServoDriver::getMiddlePulseWidth()
-{
-	return (uint16)(((int)min_pulse_width + (int)max_pulse_width) / 2);
 }
 
 /**
@@ -76,7 +71,7 @@ uint16 ServoDriver::getMiddlePulseWidth()
  * @param index
  * @param angle
  */
-void ServoDriver::setServo(uint16 index, uint16 angle)
+void ServoDriver::setServo(uint16 index, float angle)
 {
 	//1) Locate the driver
 	uint8 driver_index = index / SERVO_DRIVER_CAPACITY;
@@ -91,7 +86,6 @@ void ServoDriver::setServo(uint16 index, uint16 angle)
 
 	//3) Set pwm on target driver's index
 	index -= (driver_index * SERVO_DRIVER_CAPACITY);
-	printf("Set servo %i to angle %i with pulse width %i\n", index, angle, angleToPulseWidth(angle));
 	drivers[driver_index]->setPWM(index, 0, angleToPulseWidth(angle));
 }
 
@@ -100,9 +94,12 @@ void ServoDriver::setServo(uint16 index, uint16 angle)
  * @param angle
  * @return
  */
-int ServoDriver::angleToPulseWidth(uint16 angle)
+int ServoDriver::angleToPulseWidth(float angle)
 {
-	return (float)((angle - min_angle) * median_pulse_width / median_angle + min_pulse_width);
+	//                                                   get correct pulse factor
+	//	set to 0-180° range	  get total pulse range		             |     put pulse in correct place
+	// (angle - min_angle) * ((max_pulse_width - min_pulse_width) / 180) + min_pulse_width
+	return min_pulse_width + (((float)angle - min_angle) * angle_factor);
 }
 
 void ServoDriver::clearDrivers()

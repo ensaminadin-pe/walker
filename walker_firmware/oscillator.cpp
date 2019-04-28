@@ -43,7 +43,7 @@ float Oscillator::refresh()
 {
 	if (!_stop)
 	{
-		_delta_time = (millis() - _ref_time) % getModifiedPeriod();
+		getDeltaTime();
 		_output = (float)_amplitude * sin(time_to_radians(_delta_time) + degrees_to_radians(_phase)) + _offset;
 		handleFlag();
 	}
@@ -90,6 +90,12 @@ void Oscillator::start(unsigned long ref_time)
 void Oscillator::stop()
 {
 	_stop = true;
+}
+
+unsigned long Oscillator::getDeltaTime()
+{
+	_delta_time = (millis() - _ref_time) % getModifiedPeriod();
+	return _delta_time;
 }
 
 void Oscillator::setPeriod(uint16 period)

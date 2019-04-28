@@ -33,6 +33,7 @@ class Oscillator{
 		void start();
 		void start(unsigned long ref_time);
 		void stop();
+		unsigned long getDeltaTime();
 		float time_to_radians(double time);
 		float degrees_to_radians(float degrees);
 		float degrees_to_time(float degrees);

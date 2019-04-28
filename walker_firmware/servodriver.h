@@ -35,14 +35,13 @@ class ServoDriver
 		void setFrequency(float _frequency);
 
 		void setupPulseRange(uint16 min, uint16 max);
-		uint16 getMiddlePulseWidth();
 
 		void setupAngleRange(float min, float max);
 
 		// - Actions
 		void initDrivers();
-		void setServo(uint16 index, uint16 angle);
-		int angleToPulseWidth(uint16 angle);
+		void setServo(uint16 index, float angle);
+		int angleToPulseWidth(float angle);
 	private:
 		//Properties
 		Adafruit_PWMServoDriver** drivers;
@@ -56,8 +55,8 @@ class ServoDriver
 		float	offset;			//Offset of the set actions : Servo's 0 position
 
 		//Stored for faster angle to pulse conversion
-		uint16	median_pulse_width;
-		float	median_angle;
+		uint16	total_pulse_range;
+		float	angle_factor;
 
 		//Methods
 		void clearDrivers();

@@ -8,6 +8,15 @@
 #include "gait.h"
 #include "servodriver.h"
 
+#define GAIT_POSITION_TO_FILE
+
+#ifdef IS_QT
+	#ifdef GAIT_POSITION_TO_FILE
+		#define OUTPUT_POSITION_TO_FILE
+		#include <stdio.h>
+	#endif
+#endif
+
 class Walker
 {
 	public:
@@ -36,12 +45,15 @@ class Walker
 		// - Debug
 		void print();
 	private:
-		//Propetries
+		//Properties
 		Oscillator**	oscillators;	//Sine oscillators for joint movements
 		WalkerLeg**		legs;			//Walker legs
 		WalkerJoint**	joints;			//Walker joints
 		Gait*			gait;			//Active gait configuration
 		Gait*			next_gait;		//Next gait
+		#ifdef OUTPUT_POSITION_TO_FILE
+			FILE*		outputFile;
+		#endif
 
 		float			speed_multiplier;	//Oscillator period modifier
 		uint8			leg_count;			//Number of legs

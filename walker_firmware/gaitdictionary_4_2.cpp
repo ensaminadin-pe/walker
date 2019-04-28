@@ -23,7 +23,7 @@ Gait *GaitDictionary_4_2::getDefaultGait()
 	return defaultGait;
 }
 
-Gait* GaitDictionary_4_2::getGait(uint8 id)
+Gait* GaitDictionary_4_2::getGait(uint16 id)
 {
 	// A gait is 24 bytes uninitialized
 	// It will reach 24 + (2 * (leg_count * joint_count)) + (4 * (leg_count * joint_count)) bytes
@@ -33,6 +33,11 @@ Gait* GaitDictionary_4_2::getGait(uint8 id)
 	switch (id)
 	{ //Add your gaits here
 		case 1: return new Gait_4_2_Idle(id);
+		// 1000 - 1999 : Movement
+		case 1001: return new Gait_4_2_Turn_Left(id);
+		case 1002: return new Gait_4_2_Turn_Right(id);
+		// 2000 - 2999 : Emotes
+		case 2000: return new Gait_4_2_Dance(id);
 	}
 	return 0;
 }

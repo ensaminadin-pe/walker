@@ -73,7 +73,8 @@ void setup()
 	delay(10); //Wait a beat for the PCA9685 to init properly
 
 	int pulse_width = 515; //Change this to try an angle
-	servoDriver.setPWM(0, 0, pulse_width);
+  for (int i = 0; i < 16; i++)
+  	servoDriver.setPWM(i, 0, 330);
 }
 
 void loop()
