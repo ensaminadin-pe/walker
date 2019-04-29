@@ -108,14 +108,14 @@ void Oscillator::setAmplitude(int8 amplitude)
 	_amplitude = amplitude;
 }
 
-void Oscillator::setPhase(uint16 phase)
-{
-	_phase = phase;
-}
-
 void Oscillator::setOffset(int8 offset)
 {
 	_offset = offset;
+}
+
+void Oscillator::setPhase(uint16 phase)
+{
+	_phase = phase;
 }
 
 void Oscillator::setTime(unsigned long ref)

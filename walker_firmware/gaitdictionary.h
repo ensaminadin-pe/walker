@@ -10,7 +10,7 @@ class GaitDictionary
 		GaitDictionary();
 		virtual ~GaitDictionary();
 		virtual Gait* getDefaultGait() = 0;
-		virtual Gait* getGait(uint8 id) = 0;
+		virtual Gait* getGait(uint16 id) = 0;
 };
 
 #endif // GAITDICTIONARY_H

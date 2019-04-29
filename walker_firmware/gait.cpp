@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-Gait::Gait(uint8 _id)
+Gait::Gait(uint16 _id)
 {
 	id = _id;
 	periods = NULL;
@@ -167,7 +167,7 @@ void Gait::fillPhases(uint16 phase)
 		phases[i] = phase;
 }
 
-void Gait::setupServo(int index, uint16 period, uint16 amplitude, uint16 offset, uint16 phase)
+void Gait::setupServo(int index, uint16 period, int8 amplitude, int8 offset, uint16 phase)
 {
 	setPeriod(index, period);
 	setAmplitude(index, amplitude);

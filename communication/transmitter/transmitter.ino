@@ -42,38 +42,20 @@ byte addresses[][6] = {"1Node","2Node"};
 void setup(void)
 {
   Serial.begin(115200);
-  Serial.print("A1");
   radio.begin(); // Start the NRF24L01
   delay(10);
-  Serial.print("A2");
   radio.setPALevel(RF24_PA_MIN);
   delay(1);
-  Serial.print("A3");
   radio.openWritingPipe(address); // Get NRF24L01 ready to transmit
   delay(1);
 }
 
-int main_delay = 1000;
-
 void loop(void)
 {
-  Serial.print("A4");
   int msg = 111;
-  Serial.print("A5");
   delay(1);
   ESP.wdtDisable();
-  Serial.print("A6");
   radio.write(&msg, sizeof(int)); // Send value through NRF24L01
-  Serial.print("A7");
   ESP.wdtEnable(1);
-  Serial.print("A8");
-  delay(1);
-  Serial.println(main_delay);
-  Serial.print("A9");
-  delay(main_delay);
-  /*
-  main_delay += 100;
-  if (main_delay > 1000)
-    main_delay = 100;
-    */
+  delay(1000);
 }

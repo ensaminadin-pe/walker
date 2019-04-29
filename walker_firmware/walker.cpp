@@ -22,8 +22,6 @@ using namespace std;
 Walker::Walker()
 {
 	legs		= NULL;
-	oscillators	= NULL;
-	joints		= NULL;
 	gait		= NULL;
 	next_gait	= NULL;
 
@@ -95,7 +93,7 @@ void Walker::addLegs(uint8 count)
 void Walker::addLeg()
 {
 	//1) Create the new leg
-	WalkerLeg* leg = new WalkerLeg(this);
+	WalkerLeg* leg = new WalkerLeg(this, leg_count);
 	leg_count++;
 	//2) Resize leg storage
 	WalkerLeg** _legs = (WalkerLeg**)realloc(legs, leg_count * sizeof(WalkerLeg*));
@@ -137,26 +135,7 @@ void Walker::init()
 		return; //No legs, nothing to do
 	joint_count = legs[0]->getJointCount();
 
-	//3) Reference joints & Init Oscillators
-	int index = 0;
-	joints = (WalkerJoint**)malloc((getTotalCount()) * sizeof(WalkerJoint*));
-	oscillators = (Oscillator**)malloc((getTotalCount()) * sizeof(Oscillator*));
-	if (!joints || !oscillators)
-		return;
-
-	for (uint8 i = 0; i < leg_count; i++)
-	{
-		for (uint8 j = 0; j < joint_count; j++)
-		{
-			if (!legs[i] || !legs[i]->getJoint(j))
-				continue;
-			joints[index] = legs[i]->getJoint(j);
-			oscillators[index] = new Oscillator();
-			index++;
-		}
-	}
-
-	//4) Setup servo driver
+	//3) Setup servo driver
 	sServoDriver->setServoCount(getTotalCount());
 	sServoDriver->setupAngleRange(-90.0f, 90.0f);
 	sServoDriver->initDrivers();
@@ -167,24 +146,6 @@ void Walker::init()
  */
 void Walker::reset()
 {
-	//1) Delete & free oscillators
-	if (oscillators)
-	{
-		for (uint16 i = 0; i < (getTotalCount()); i++)
-		{
-			if (oscillators[i])
-				delete oscillators[i];
-		}
-		free(oscillators);
-		oscillators = NULL;
-	}
-
-	//2) Free joints list
-	if (joints)
-	{
-		free(joints);
-		joints = NULL;
-	}
 }
 
 /* ------------------------------------------- */
@@ -205,11 +166,8 @@ void Walker::update(int diff)
 			clearGait();
 			loadNextGait();
 		}
-		if (gait)
-		{
-			//2) Update Oscillators & servos
+		if (gait) //2) Update Oscillators & servos
 			updateServoPositions();
-		}
 		//3) Reset timer
 		update_timer = UPDATE_SPEED;
 	}
@@ -226,22 +184,26 @@ void Walker::update(int diff)
  */
 void Walker::updateServoPositions()
 {
-	if (!oscillators)
+	if (!legs)
 		return;
 
-	for (uint16 i = 0; i < (getTotalCount()); i++)
+	for (uint8 leg_index = 0; leg_index < leg_count; leg_index++)
 	{
-
-		if (oscillators[i])
+		for (uint8 joint_index = 0; joint_index < joint_count; joint_index++)
 		{
+			if (!legs[leg_index])
+				continue;
+			WalkerJoint* joint = legs[leg_index]->getJoint(joint_index);
+			if (!joint)
+				continue;
 			#ifdef OUTPUT_POSITION_TO_FILE
-			if (i == 0)
-				fprintf(outputFile, "%i\t%i\t", oscillators[i]->getModifiedPeriod(), oscillators[i]->getDeltaTime());
+			if (leg_index == 0 && joint_index == 0)
+				fprintf(outputFile, "%i\t%i\t", joint->getOscillator()->getModifiedPeriod(), joint->getOscillator()->getDeltaTime());
 			#endif
-			sServoDriver->setServo(i, oscillators[i]->refresh());
 			#ifdef OUTPUT_POSITION_TO_FILE
-				fprintf(outputFile, "%f\t", oscillators[i]->getOutput());
+				fprintf(outputFile, "%f\t", joint->getOscillator()->getOutput());
 			#endif
+			joint->updateServoPosition();
 		}
 	}
 	#ifdef OUTPUT_POSITION_TO_FILE
@@ -256,12 +218,17 @@ void Walker::clearGait()
 {
 	if (gait)
 		delete gait;
-	if (oscillators)
+
+	for (uint8 leg_index = 0; leg_index < leg_count; leg_index++)
 	{
-		for (uint16 i = 0; i < (getTotalCount()); i++)
+		for (uint8 joint_index = 0; joint_index < joint_count; joint_index++)
 		{
-			if (oscillators[i])
-				oscillators[i]->stop();
+			if (!legs[leg_index])
+				continue;
+			WalkerJoint* joint = legs[leg_index]->getJoint(joint_index);
+			if (!joint)
+				continue;
+			joint->stopOscillator();
 		}
 	}
 }
@@ -280,21 +247,20 @@ void Walker::loadNextGait()
 	next_gait = NULL;
 
 	//2) Setup oscillators
-	if (!oscillators)
-		return;
 	unsigned long time = millis();
-	for (uint16 i = 0; i < (getTotalCount()); i++)
+	for (uint8 leg_index = 0; leg_index < leg_count; leg_index++)
 	{
-		if (!oscillators[i])
-			continue;
-
-		oscillators[i]->setPeriodModifier(&speed_multiplier);
-		oscillators[i]->setPeriod(gait->getPeriod(i));
-		oscillators[i]->setAmplitude(gait->getAmplitude(i));
-		oscillators[i]->setOffset(gait->getOffset(i));
-		oscillators[i]->setPhase(gait->getPhase(i));
-		oscillators[i]->start();
-		oscillators[i]->setTime(time);
+		for (uint8 joint_index = 0; joint_index < joint_count; joint_index++)
+		{
+			if (!legs[leg_index])
+				continue;
+			WalkerJoint* joint = legs[leg_index]->getJoint(joint_index);
+			if (!joint)
+				continue;
+			joint->loadGait(gait);
+			joint->startOscillator();
+			joint->setOscillatorTime(time);
+		}
 	}
 }
 
@@ -340,20 +306,20 @@ void Walker::setGaitSpeed(float speed)
 
 float Walker::increaseGaitSpeed()
 {
-	if ((speed_multiplier + GAIT_SPEED_INCREMENT) >= MAX_GAIT_SPEED)
-		speed_multiplier = MAX_GAIT_SPEED;
+	if ((speed_multiplier - GAIT_SPEED_INCREMENT) <= MIN_GAIT_SPEED)
+		speed_multiplier = MIN_GAIT_SPEED;
 	else
-		speed_multiplier += GAIT_SPEED_INCREMENT;
+		speed_multiplier -= GAIT_SPEED_INCREMENT;
 
 	return speed_multiplier;
 }
 
 float Walker::decreaseGaitSpeed()
 {
-	if ((speed_multiplier - GAIT_SPEED_INCREMENT) <= MIN_GAIT_SPEED)
-		speed_multiplier = MIN_GAIT_SPEED;
+	if ((speed_multiplier + GAIT_SPEED_INCREMENT) >= MAX_GAIT_SPEED)
+		speed_multiplier = MAX_GAIT_SPEED;
 	else
-		speed_multiplier -= GAIT_SPEED_INCREMENT;
+		speed_multiplier += GAIT_SPEED_INCREMENT;
 
 	return speed_multiplier;
 }

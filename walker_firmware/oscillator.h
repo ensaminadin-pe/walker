@@ -24,8 +24,8 @@ enum OscillatorFlags: uint8
 	OSCILLATE_ONLY_NEGATIVE = 32 //Only return negative results
 };
 
-class Oscillator{
-
+class Oscillator
+{
 	public:
 		Oscillator();
 		float refresh();

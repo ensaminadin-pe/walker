@@ -37,6 +37,7 @@ class Walker
 		void init();
 		// - Speed
 		void setGaitSpeed(float speed);
+		float* getPeriodModifier() { return &speed_multiplier; }
 		float increaseGaitSpeed();
 		float decreaseGaitSpeed();
 		// - Main
@@ -46,9 +47,7 @@ class Walker
 		void print();
 	private:
 		//Properties
-		Oscillator**	oscillators;	//Sine oscillators for joint movements
 		WalkerLeg**		legs;			//Walker legs
-		WalkerJoint**	joints;			//Walker joints
 		Gait*			gait;			//Active gait configuration
 		Gait*			next_gait;		//Next gait
 		#ifdef OUTPUT_POSITION_TO_FILE
@@ -63,7 +62,6 @@ class Walker
 		//Methods
 		void freeLegs();
 		void reset();
-		void updateOscillators();
 		void updateServoPositions();
 		void clearGait();
 		void loadNextGait();

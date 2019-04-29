@@ -62,7 +62,7 @@ class Gait
 		void setPhase(int index, uint16 phase);
 		void fillPhases(uint16 phase);
 
-		void setupServo(int index, uint16 period, uint16 amplitude, uint16 offset, uint16 phase);
+		void setupServo(int index, uint16 period, int8 amplitude, int8 offset, uint16 phase);
 };
 
 //1 2 4 8 16 32 64 128

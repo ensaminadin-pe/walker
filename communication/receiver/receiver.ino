@@ -23,25 +23,19 @@ const byte address[6] = "1Node";
 void setup()
 {
   Serial.begin(115200);
-  Serial.print("A1");
   delay(1);
   radio.begin();
   delay(1);
-  Serial.print("A2");
   radio.openReadingPipe(0, address);   //Setting the address at which we will receive the data
   delay(1);
-  Serial.print("A3");
   radio.setPALevel(RF24_PA_MIN);       //You can set this as minimum or maximum depending on the distance between the transmitter and receiver.
   delay(1);
-  Serial.print("A4");
   radio.startListening();              //This sets the module as receiver
   delay(1);
-  Serial.print("A5");
 }
 
 void loop()
 {
-  Serial.print("A6");
   if (radio.available())              //Looking for the data.
   {
     int msg = 0;                 //Saving the incoming data

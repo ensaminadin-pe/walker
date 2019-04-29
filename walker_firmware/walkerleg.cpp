@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-WalkerLeg::WalkerLeg(Walker* _parent)
+WalkerLeg::WalkerLeg(Walker* _parent, uint8 _index)
 {
 	parent = _parent;
+	index = _index;
 	joints = NULL;
 	joint_count = 0;
 }
@@ -48,7 +49,7 @@ void WalkerLeg::addJoints(uint8 count)
 void WalkerLeg::addJoint()
 {
 	//1) Crate new joint
-	WalkerJoint* joint = new WalkerJoint();
+	WalkerJoint* joint = new WalkerJoint(index, joint_count);
 	joint_count++;
 	//2) Resize joint storage
 	WalkerJoint** _joints = (WalkerJoint**)realloc(joints, joint_count * sizeof(WalkerJoint*));
