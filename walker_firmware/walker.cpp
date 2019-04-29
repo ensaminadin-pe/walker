@@ -16,7 +16,7 @@ using namespace std;
  *	        #    #
  *  j05-j04-l2  l3-j06-j07
  *          #    #
- *  j09-j08-l4##l5-j10-j10
+ *  j09-j08-l4##l5-j10-j11
  *
  ***/
 Walker::Walker()

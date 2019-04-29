@@ -17,7 +17,8 @@ SOURCES += \
     mainfunctions.cpp \
     stdpolyfill.cpp \
     servodriver.cpp \
-    gaitdictionary_4_2.cpp
+    gaitdictionary_4_2.cpp \
+    radioreceiver.cpp
 
 HEADERS += \
     oscillator.h \
@@ -34,4 +35,5 @@ HEADERS += \
     stdpolyfill.h \
     servodriver.h \
     gaitdictionary_4_2.h \
-    gaits_4_2.h
+    gaits_4_2.h \
+    radioreceiver.h

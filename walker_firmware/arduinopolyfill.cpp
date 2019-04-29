@@ -59,4 +59,8 @@
 				printf("[Servo PWM driver] : Set Pin for [%i] to [%i]. Inverted ? %d: %\n", num, val, invert);
 		#endif
 	}
+
+	void RF24::write(const void *buf, uint8 len)
+	{
+	}
 #endif
