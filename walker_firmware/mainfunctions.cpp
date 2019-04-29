@@ -1,6 +1,7 @@
 #include "mainfunctions.h"
 #include "walker.h"
 #include "gaitdictionarymgr.h"
+#include "radioreceiver.h"
 #include <stdio.h>
 
 #ifdef IS_QT
@@ -54,18 +55,8 @@ void main_setup()
 
 void main_loop()
 { //Arduino like loop
-	/*
-	sServoDriver->setServo(0, 90);
-	delay(2000);
-	sServoDriver->setServo(0, 0);
-	delay(2000);
-	sServoDriver->setServo(0, -45);
-	delay(2000);
-	sServoDriver->setServo(0, 0);
-	delay(2000);
-	return;
-	*/
-
+	/// - TODO - Setup better millisecond diff for individuals updates
+	/// - TODO - Radio result structure
 	//1) Setup loop diff time
 	if (update_time == 0)
 	{
@@ -87,5 +78,6 @@ void main_loop()
 	//   - sensor detection and whatnot
 
 	//4) Run walker update loop
+	sRadioReceiver->update(diff);
 	sWalker->update(diff);
 }

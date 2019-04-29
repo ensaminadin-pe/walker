@@ -39,23 +39,22 @@
  * --------------------------- */
 
 //CE is the only pin that is board dependant and need to be declared in the RF24 constructor
+//The pin is labeled CE or SS
 #ifdef ARDUINO_AVR_UNO
-	#define RF24_PIN_CE 1 ///TODO
+	#define RF24_PIN_CE 10 ///TODO - TEST THIS
 #elif ARDUINO_AVR_NANO
 	#define RF24_PIN_CE 9 //Pin D9
 #elif ARDUINO_AVR_MINI
-	#define RF24_PIN_CE 1 ///TODO
+	#define RF24_PIN_CE 13 ///TODO - TEST THIS
 #elif ARDUINO_ESP8266_NODEMCU
 	#define RF24_PIN_CE 4 //GPIO4 = pin D2
 #else
-	#define RF24_PIN_CE 1
+	#define RF24_PIN_CE 1 //No pin, no game
 #endif
 
-
 /// - Radio receiver
-/// There is basically only one pin that is configurable : The CE pin
+/// There is basically only one pin that is configurable : The CE (SPI:SS) pin
 /// The others are hardware dependant and can be found on the documentation
-
 class RadioReceiver
 {
 	public:
@@ -64,10 +63,12 @@ class RadioReceiver
 		// - Getters
 		static RadioReceiver* instance();
 		// - Main
-		void setup(int transmission_pin);
-		void update();
+		void	setup(uint8 _transmission_pin, uint32 _address);
+		int		update(int diff);
 	private:
-		int16	update_timer;
+		uint16	update_timer;
+		uint32	address;
+		uint8	transmission_pin;
 		RF24*	radio;
 };
 

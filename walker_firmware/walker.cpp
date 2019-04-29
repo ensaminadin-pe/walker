@@ -158,7 +158,7 @@ void Walker::reset()
  */
 void Walker::update(int diff)
 {
-	if (update_timer <= 0)
+	if (update_timer <= diff)
 	{
 		//1) Check for gait change
 		if (next_gait)

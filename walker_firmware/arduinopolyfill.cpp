@@ -60,6 +60,10 @@
 		#endif
 	}
 
+	void RF24::read(const void *buf, uint8 len)
+	{
+	}
+
 	void RF24::write(const void *buf, uint8 len)
 	{
 	}

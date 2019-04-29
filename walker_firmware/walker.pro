@@ -36,4 +36,5 @@ HEADERS += \
     servodriver.h \
     gaitdictionary_4_2.h \
     gaits_4_2.h \
-    radioreceiver.h
+    radioreceiver.h \
+    esp8266_watchdog.h
