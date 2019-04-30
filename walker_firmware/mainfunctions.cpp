@@ -29,7 +29,7 @@
 ///			Arduinos have an I2C bus on the A5 and A4 pins, you cannot move it to other pins,
 ///			from what i understand it's a feature built into the controller itself.
 ///			If you are using another board, you need to check the correct documentation to find what pins to use.
-///		1.2) Wireless receiver
+///		1.2) Radio receiver
 ///			Later
 
 //static uint32 update_time;
@@ -75,13 +75,13 @@ void main_loop()
 
 	//2) Add control logic here
 	//   - sensor detection and whatnot
-	uint8* result = sRadio->update(diff());
-	if (result)
-	{ // Has a radio update
+	uint8* radio_packet = sRadio->update(diff());
+	if (radio_packet && direction_nunchuk.handlePacket((WiiNunchuckPacket*)radio_packet))
+	{ // Has a radio update & packet was correct
 		//   - remote control actions to set next gait
 	}
 
-	//4) Run walker update loop
+	//3) Run walker update loop
 	sWalker->update(diff());
 	update_time = millis();
 }

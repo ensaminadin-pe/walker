@@ -11,10 +11,10 @@ WiiNunchuck::WiiNunchuck()
 	roll = 0.0f;
 }
 
-void WiiNunchuck::handlePacket(WiiNunchuckPacket *packet)
+bool WiiNunchuck::handlePacket(WiiNunchuckPacket *packet)
 {
-	if (!(packet->buttons & WII_BUTTON_UPDATE))
-		return; //Blank packet, skip
+	if (!packet || !(packet->buttons & WII_BUTTON_UPDATE))
+		return false; //Blank packet, skip
 
 	joystick_x = packet->joystick_x;
 	joystick_y = packet->joystick_y;
@@ -26,6 +26,7 @@ void WiiNunchuck::handlePacket(WiiNunchuckPacket *packet)
 	roll = decompressFloat(packet->roll);
 
 	update_time = millis();
+	return true;
 }
 
 WiiNunchuckPacket* WiiNunchuck::buildPacket(WiiNunchuckPacket* packet)

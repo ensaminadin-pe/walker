@@ -45,7 +45,7 @@ class WiiNunchuck
 {
 	public:
 		WiiNunchuck();
-		void handlePacket(WiiNunchuckPacket* packet);
+		bool handlePacket(WiiNunchuckPacket* packet);
 		WiiNunchuckPacket* buildPacket(WiiNunchuckPacket* packet);
 
 		uint8	getJoystickX()	{ return joystick_x; }

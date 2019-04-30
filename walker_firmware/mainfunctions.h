@@ -8,8 +8,10 @@
 
 #include "types.h"
 #include "arduinopolyfill.h"
+#include "wiinunchuck.h"
 
 static uint32 update_time;
+static WiiNunchuck direction_nunchuk;
 
 void main_setup();
 void main_loop();
