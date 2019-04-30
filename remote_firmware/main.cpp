@@ -1,8 +1,3 @@
-/** TODO
- - handle some kind of command input
- - build the remote
- */
-
 #ifdef IS_QT
 	#include "mainfunctions.h"
 

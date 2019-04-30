@@ -18,7 +18,8 @@ SOURCES += \
     stdpolyfill.cpp \
     servodriver.cpp \
     gaitdictionary_4_2.cpp \
-    radioreceiver.cpp
+    wiinunchuck.cpp \
+    radio.cpp
 
 HEADERS += \
     oscillator.h \
@@ -36,5 +37,6 @@ HEADERS += \
     servodriver.h \
     gaitdictionary_4_2.h \
     gaits_4_2.h \
-    radioreceiver.h \
-    esp8266_watchdog.h
+    esp8266_watchdog.h \
+    wiinunchuck.h \
+    radio.h

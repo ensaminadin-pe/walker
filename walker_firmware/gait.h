@@ -2,7 +2,6 @@
 #define GAIT_H
 
 #include "types.h"
-#include "stdio.h"
 
 enum GaitType: uint8
 {
@@ -71,7 +70,6 @@ class Gait_4_2: public Gait
 	public:
 		Gait_4_2(uint16 _id = 0): Gait(_id)
 		{
-			printf("G\n");
 			leg_count = 4;
 			joint_count = 2;
 			setup();

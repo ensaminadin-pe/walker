@@ -6,13 +6,7 @@
 #ifndef MAINFUNCTIONS_H
 #define MAINFUNCTIONS_H
 
-#include "types.h"
-#include "arduinopolyfill.h"
-
-static uint32 update_time;
-
 void main_setup();
 void main_loop();
-uint32 diff();
 
 #endif // MAINFUNCTIONS_H

@@ -1,8 +1,10 @@
 #include "mainfunctions.h"
 #include "walker.h"
 #include "gaitdictionarymgr.h"
-#include "radioreceiver.h"
+#include "radio.h"
+#include "config.h"
 #include <stdio.h>
+#include "wiinunchuck.h"
 
 #ifdef IS_QT
 	#include "arduinopolyfill.h"
@@ -30,10 +32,18 @@
 ///		1.2) Wireless receiver
 ///			Later
 
-unsigned long update_time;
+//static uint32 update_time;
+
+uint32 diff()
+{
+	return update_time - millis();
+}
 
 void main_setup()
 { //Arduino like setup
+	/// Setup your remote here
+	sRadio->setup(RADIO_PIN, RADIO_ADRESS, RADIO_RECEIVE); //Radio data on pin 10, can be anything
+	sRadio->setListenSize(sizeof(WiiNunchuckPacket));
 	/// Setup your walker here
 	//1) Setup leg & joint counts
 	sWalker->setup(4, 2);
@@ -44,7 +54,7 @@ void main_setup()
 	//3) Setup servo pulse range
 	//  This is the tricky part, you need to find the 0 and 180° pulse width yourself
 	//	Its a number between 0 and 4095 and, for my sg90s it's 145 and 515 at 60Hz
-	sServoDriver->setFrequency(60); //60Hz
+	sServoDriver->setFrequency(SERVO_UPDATE_FREQUENCY); //60Hz
 	sServoDriver->setupAngleRange(-90.0f, 90.0f);
 	sServoDriver->setupPulseRange(145, 515); //0° and 180°
 	printf("Walker is init !\n");
@@ -55,7 +65,6 @@ void main_setup()
 
 void main_loop()
 { //Arduino like loop
-	/// - TODO - Setup better millisecond diff for individuals updates
 	/// - TODO - Radio result structure
 	//1) Setup loop diff time
 	if (update_time == 0)
@@ -64,20 +73,15 @@ void main_loop()
 		return;
 	}
 
-	//2) Calculate loop diff time
-	int diff = millis() - update_time;
-	if (diff <= 1) //Less than 1ms, delay update, we need at least 1ms of diff
-	{
-		delay(1);
-		diff = 1;
-	}
-	update_time = millis();
-
-	//3) Add control logic here
-	//   - remote control actions to set next gait
+	//2) Add control logic here
 	//   - sensor detection and whatnot
+	uint8* result = sRadio->update(diff());
+	if (result)
+	{ // Has a radio update
+		//   - remote control actions to set next gait
+	}
 
 	//4) Run walker update loop
-	sRadioReceiver->update(diff);
-	sWalker->update(diff);
+	sWalker->update(diff());
+	update_time = millis();
 }

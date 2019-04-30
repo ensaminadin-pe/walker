@@ -1,5 +1,5 @@
-#ifndef RADIORECEIVER_H
-#define RADIORECEIVER_H
+#ifndef RADIO_H
+#define RADIO_H
 
 #include "types.h"
 #ifndef IS_QT
@@ -52,26 +52,41 @@
 	#define RF24_PIN_CE 1 //No pin, no game
 #endif
 
+enum RadioFlag
+{
+	RADIO_TRANSMIT = 1,
+	RADIO_RECEIVE = 2
+};
+
 /// - Radio receiver
 /// There is basically only one pin that is configurable : The CE (SPI:SS) pin
 /// The others are hardware dependant and can be found on the documentation
-class RadioReceiver
+class Radio
 {
 	public:
-		RadioReceiver();
+		Radio();
 		//Methods
 		// - Getters
-		static RadioReceiver* instance();
+		static Radio* instance();
 		// - Main
-		void	setup(uint8 _transmission_pin, uint32 _address);
-		int		update(int diff);
+		void	setup(uint8 _transmission_pin, uint64 _address, RadioFlag _flag, uint8 _channel = 0, uint8 power_level = RF24_PA_MIN, uint8 _listen_size = 32);
+		uint8	*update(uint32 diff);
+		void	send(const void* buffer, uint8 size);
+		void	setListenSize(uint8 size);
+		RF24*	getRadio() { return radio; }
 	private:
-		uint16	update_timer;
-		uint32	address;
-		uint8	transmission_pin;
-		RF24*	radio;
+		void	setupListenBuffer();
+		void	clearListenBuffer();
+		uint8		transmission_pin;
+		uint64		address;
+		RadioFlag	flag;
+		uint8		channel;
+		uint16		update_timer;
+		uint8		listen_size; //Reception buffer size
+		uint8*		listen_buffer;
+		RF24*		radio;
 };
 
-#define sRadioReceiver RadioReceiver::instance()
+#define sRadio Radio::instance()
 
-#endif // RADIORECEIVER_H
+#endif // RADIO_H

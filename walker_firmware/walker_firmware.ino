@@ -3,7 +3,9 @@
 #include "mainfunctions.h"
 #include "config.h"
 
-//Install https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library
+//Libraries to install :
+// - https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library
+// - https://github.com/nRF24/RF24
 
 void setup()
 {

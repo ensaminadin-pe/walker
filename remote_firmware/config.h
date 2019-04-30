@@ -15,7 +15,6 @@
 // Servos
 #define SERVO_UPDATE_FREQUENCY 60 //60Hz
 // Radio
-#define RADIO_ADRESS	123456798
-#define RADIO_PIN		10
+#define RADIO_ADRESS 123456798
 
 #endif // CONFIG
