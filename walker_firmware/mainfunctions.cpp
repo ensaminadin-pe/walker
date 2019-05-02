@@ -60,7 +60,7 @@ void main_setup()
 	printf("Walker is init !\n");
 	//4) Setup default Gait for number of legs and joint
 	//   default should be stand position for calibration
-	sWalker->setNextGait(sGaitDictionary->getDefaultGait());
+	sWalker->setNextGait(1);
 }
 
 void main_loop()
@@ -79,7 +79,16 @@ void main_loop()
 	{ // Has a radio update & packet was correct
 		direction_nunchuck.print();
 		//   - remote control actions to set next gait
-		//direction_nunchuck.print();
+		if (direction_nunchuck.getJoystickX() >= 80)
+			sWalker->setNextGait(2100);
+		else if (direction_nunchuck.getJoystickX() <= -80)
+			sWalker->setNextGait(2103);
+		else if (direction_nunchuck.getJoystickY() >= 80)
+			sWalker->setNextGait(2102);
+		else if (direction_nunchuck.getJoystickY() <= -80)
+			sWalker->setNextGait(2101);
+		else
+			sWalker->setNextGait(1);
 	}
 
 	//3) Run walker update loop

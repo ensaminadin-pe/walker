@@ -10,11 +10,11 @@ class GaitDictionaryMgr
 		GaitDictionaryMgr();
 		//Methods
 		static GaitDictionaryMgr* instance();
-		static GaitDictionary* getDictionary();
+		GaitDictionary* getDictionary();
 		GaitDictionary* getDictionaryFor(uint8 leg_count, uint8 joint_count);
 };
 
 #define sGaitDictionaryMgr GaitDictionaryMgr::instance()
-#define sGaitDictionary GaitDictionaryMgr::getDictionary()
+#define sGaitDictionary sGaitDictionaryMgr->getDictionary()
 
 #endif // GAITDICTIONARYMGR_H

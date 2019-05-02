@@ -29,9 +29,6 @@ Gait* GaitDictionary_4_2::getGait(uint16 id)
 	// It will reach 24 + (2 * (leg_count * joint_count)) + (4 * (leg_count * joint_count)) bytes
 	// So for a 4 legs, 2 servos : 24 + 16 + 32 = 72 bytes
 	// We cannot keep it in memory, a regular ATmega328 chip has only 2k byte memory
-
-	return new Gait_4_2_Forward(id);
-
 	switch (id)
 	{ //Add your gaits here
 		case 1: return new Gait_4_2_Idle(id);
@@ -42,6 +39,12 @@ Gait* GaitDictionary_4_2::getGait(uint16 id)
 		case 1002: return new Gait_4_2_Turn_Right(id);
 		// 2000 - 2999 : Emotes
 		case 2000: return new Gait_4_2_Dance(id);
+		case 2100:
+			return new Gait_4_2_Leg0(id);
+		break;
+		case 2101: return new Gait_4_2_Leg1(id);
+		case 2102: return new Gait_4_2_Leg2(id);
+		case 2103: return new Gait_4_2_Leg3(id);
 	}
 	return 0;
 }

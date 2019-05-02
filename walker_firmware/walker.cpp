@@ -1,5 +1,6 @@
 #include "walker.h"
 #include "arduinopolyfill.h"
+#include "gaitdictionarymgr.h"
 #include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,9 +22,9 @@ using namespace std;
  ***/
 Walker::Walker()
 {
-	legs		= NULL;
-	gait		= NULL;
-	next_gait	= NULL;
+	legs			= NULL;
+	gait			= NULL;
+	next_gait_id	= 0;
 
 	speed_multiplier	= 1.0f;
 	leg_count			= 0;
@@ -161,11 +162,8 @@ void Walker::update(uint32 diff)
 	if (update_timer <= diff)
 	{
 		//1) Check for gait change
-		if (next_gait)
-		{
-			clearGait();
+		if (next_gait_id)
 			loadNextGait();
-		}
 		if (gait) //2) Update Oscillators & servos
 			updateServoPositions();
 		//3) Reset timer
@@ -216,9 +214,8 @@ void Walker::updateServoPositions()
  */
 void Walker::clearGait()
 {
-	if (gait)
-		delete gait;
-
+	if (!gait)
+		return;
 	for (uint8 leg_index = 0; leg_index < leg_count; leg_index++)
 	{
 		for (uint8 joint_index = 0; joint_index < joint_count; joint_index++)
@@ -231,6 +228,11 @@ void Walker::clearGait()
 			joint->stopOscillator();
 		}
 	}
+	if (gait)
+	{
+		delete gait;
+		gait = 0;
+	}
 }
 
 /**
@@ -239,14 +241,24 @@ void Walker::clearGait()
 void Walker::loadNextGait()
 {
 	//1) Check if a gait is provided and clear current gait if needed
-	if (!next_gait)
+	if (!next_gait_id)
 		return;
 	if (gait)
 		clearGait();
-	gait = next_gait;
-	next_gait = NULL;
 
-	//2) Setup oscillators
+	//2) Get the target gait
+	Gait* next_gait = sGaitDictionary->getGait(next_gait_id);
+	next_gait_id = 0;
+
+	//3) Check loaded gait
+	if (!next_gait || next_gait->getLegCount() != getLegCount() || next_gait->getJointCount() != getJointCount())
+	{
+		delete next_gait;
+		return;
+	}
+
+	//4) Load gait
+	gait = next_gait;
 	unsigned long time = millis();
 	for (uint8 leg_index = 0; leg_index < leg_count; leg_index++)
 	{
@@ -268,26 +280,12 @@ void Walker::loadNextGait()
  * @brief Walker::setNextGait Call for a Gait change
  * @param gait
  */
-void Walker::setNextGait(Gait *_gait)
+void Walker::setNextGait(uint16 gait_id)
 {
-	//1) Check gait validity
-	if (!_gait)
+	//Check gait validity
+	if (!gait_id || (gait && gait->getId() == gait_id))
 		return;
-	if (
-		(gait && gait->getId() == _gait->getId()) || //Cannot set the same gait twice
-		(_gait->getLegCount() != getLegCount() || _gait->getJointCount() != getJointCount()) //Gait doesn't fit
-	)
-	{ // clear and skip assignation
-		delete _gait;
-		return;
-	}
-
-	//2) Already chose something, trash it before setting the new thing
-	if (this->next_gait)
-		delete this->next_gait;
-
-	//3) Save provided gait for next update
-	this->next_gait = _gait;
+	next_gait_id = gait_id;
 }
 
 /* ------------------------------------------- */

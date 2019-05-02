@@ -42,14 +42,14 @@ class Walker
 		float decreaseGaitSpeed();
 		// - Main
 		void update(uint32 diff);
-		void setNextGait(Gait* _gait);
+		void setNextGait(uint16 gait_id);
 		// - Debug
 		void print();
 	private:
 		//Properties
 		WalkerLeg**		legs;			//Walker legs
 		Gait*			gait;			//Active gait configuration
-		Gait*			next_gait;		//Next gait
+		uint16			next_gait_id;	//Next gait
 		#ifdef OUTPUT_POSITION_TO_FILE
 			FILE*		outputFile;
 		#endif

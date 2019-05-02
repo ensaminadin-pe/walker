@@ -116,4 +116,51 @@ class Gait_4_2_Dance: public Gait_4_2
 		}
 };
 
+class Gait_4_2_Leg0: public Gait_4_2
+{
+	public:
+		Gait_4_2_Leg0(uint16 _id) : Gait_4_2(_id)
+		{
+			fillAmplitudes(0);
+			//Leg 0
+			setupServo(0, DEFAULT_4_2_SPEED, 15, 0, 0);
+			setupServo(1, DEFAULT_4_2_SPEED, 0, 50, 0);
+		}
+};
+
+class Gait_4_2_Leg1: public Gait_4_2
+{
+	public:
+		Gait_4_2_Leg1(uint16 _id) : Gait_4_2(_id)
+		{
+			fillAmplitudes(0);
+			//Leg 1
+			setupServo(2, DEFAULT_4_2_SPEED, 15, 0, 0);
+			setupServo(3, DEFAULT_4_2_SPEED, 0, -50, 0);
+		}
+};
+
+class Gait_4_2_Leg2: public Gait_4_2
+{
+	public:
+		Gait_4_2_Leg2(uint16 _id) : Gait_4_2(_id)
+		{
+			fillAmplitudes(0);
+			//Leg 2
+			setupServo(4, DEFAULT_4_2_SPEED, 15, 0, 0);
+			setupServo(5, DEFAULT_4_2_SPEED, 0, -50, 0);
+		}
+};
+
+class Gait_4_2_Leg3: public Gait_4_2
+{
+	public:
+		Gait_4_2_Leg3(uint16 _id) : Gait_4_2(_id)
+		{
+			fillAmplitudes(0);
+			//Leg 3
+			setupServo(6, DEFAULT_4_2_SPEED, 15, 0, 0);
+			setupServo(7, DEFAULT_4_2_SPEED, 0, 50, 0);
+		}
+};
 #endif // GAITS_4_2_H

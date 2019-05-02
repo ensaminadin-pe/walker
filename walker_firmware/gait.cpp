@@ -16,14 +16,11 @@ Gait::Gait(uint16 _id)
 
 Gait::~Gait()
 {
-	if (offsets)
-		free(offsets);
-	if (phases)
-		free(phases);
 	if (periods)
 		free(periods);
 	if (amplitudes)
 		free(amplitudes);
+	//No need to free offsets and phases since the mallocs are on period and amp addresses
 	periods = NULL;
 	amplitudes = NULL;
 	offsets = NULL;
