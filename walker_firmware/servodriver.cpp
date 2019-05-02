@@ -1,5 +1,6 @@
 #include "servodriver.h"
 #include "arduinopolyfill.h"
+#include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -86,7 +87,8 @@ void ServoDriver::setServo(uint16 index, float angle)
 
 	//3) Set pwm on target driver's index
 	index -= (driver_index * SERVO_DRIVER_CAPACITY);
-	drivers[driver_index]->setPWM(index, 0, angleToPulseWidth(angle));
+	int pulse = angleToPulseWidth(angle);
+	drivers[driver_index]->setPWM(index, 0, pulse);
 }
 
 /**

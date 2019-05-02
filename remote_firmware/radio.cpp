@@ -66,7 +66,7 @@ uint8* Radio::update(uint32 diff)
 		clearListenBuffer();
 		radio->read(listen_buffer, listen_size);
 		esp8266_delay(2); //ESP8266 watchdog delay
-		update_timer = 5;
+		update_timer = 50;
 		return listen_buffer;
 	}
 	else

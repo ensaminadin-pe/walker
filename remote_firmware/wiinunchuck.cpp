@@ -1,55 +1,131 @@
 #include "wiinunchuck.h"
 #include "arduinopolyfill.h"
 
+#ifndef IS_QT
+	#include <Wire.h>
+	#include "nunchuck.h"
+#endif
+
 WiiNunchuck::WiiNunchuck()
 {
-	joystick_x = WII_JOYSTICK_ZERO;
-	joystick_y = WII_JOYSTICK_ZERO;
+	joystick_x = 0;
+	joystick_y = 0;
 	z = false;
 	c = false;
-	pitch = 0.0f;
-	roll = 0.0f;
+	pitch = 0;
+	roll = 0;
+	reading = false;
+	read_time = 20;
 }
 
-void WiiNunchuck::handlePacket(WiiNunchuckPacket *packet)
+bool WiiNunchuck::handlePacket(WiiNunchuckPacket *packet)
 {
-	if (!(packet->buttons & WII_BUTTON_UPDATE))
-		return; //Blank packet, skip
+	if (!(packet->infos & WII_PACKET_INFO_UPDATE))
+		return false; //Blank packet, skip
 
 	joystick_x = packet->joystick_x;
 	joystick_y = packet->joystick_y;
+	pitch = packet->pitch;
+	roll = packet->roll;
+
 	//C is on when bit 1 is toggled on in buttons
-	c = packet->buttons & WII_BUTTON_C;
+	c = packet->infos & WII_PACKET_INFO_C;
 	//Z is on when bit 2 is toggled on in buttons
-	z = packet->buttons & WII_BUTTON_Z;
-	pitch = decompressFloat(packet->pitch);
-	roll = decompressFloat(packet->roll);
+	z = packet->infos & WII_PACKET_INFO_Z;
 
 	update_time = millis();
+	return true;
 }
 
 WiiNunchuckPacket* WiiNunchuck::buildPacket(WiiNunchuckPacket* packet)
 {
+	packet->infos += WII_PACKET_INFO_UPDATE;
+
 	packet->joystick_x = joystick_x;
 	packet->joystick_y = joystick_y;
-	packet->pitch = compressFloat(pitch);
-	packet->roll = compressFloat(roll);
+	packet->pitch = pitch;
+	packet->roll = roll;
 
-	packet->buttons += WII_BUTTON_UPDATE;
 	if (c)
-		packet->buttons += WII_BUTTON_C;
+		packet->infos += WII_PACKET_INFO_C;
 	if (z)
-		packet->buttons += WII_BUTTON_Z;
+		packet->infos += WII_PACKET_INFO_Z;
 
 	return packet;
 }
 
-uint16 WiiNunchuck::compressFloat(float value)
+void WiiNunchuck::update(unsigned long diff)
 {
-	return (uint16)((value / WII_FLOAT_COMPRESS_RATIO) * WII_FLOAT_COMPRESS_PRECISION);
+	if (!reading)
+		return;
+
+	if (read_time <= diff)
+	{
+		read();
+		read_time = 20;
+	}
+	else
+		read_time -= diff;
 }
 
-float WiiNunchuck::decompressFloat(uint16 value)
+void WiiNunchuck::initNunchuckReading()
+{ //Setup nunchuck readon on I2C port
+	#ifndef IS_QT
+		Wire.begin();
+		Wire.setClock(400000);
+		nunchuk_init();
+	#endif
+	reading = true;
+}
+
+void WiiNunchuck::read()
 {
-	return (((float)value / WII_FLOAT_COMPRESS_PRECISION) * WII_FLOAT_COMPRESS_RATIO);
+	if (!reading)
+		return;
+	#ifndef IS_QT
+	if (nunchuk_read())
+	{
+		joystick_x =  toInt8(nunchuk_joystickX());
+		joystick_y = toInt8(nunchuk_joystickY());
+
+		pitch = (int16)(nunchuk_accelX_raw() - WII_ACCELEROMETER_OFFSET_X);
+		roll = (int16)(nunchuk_accelY_raw() - WII_ACCELEROMETER_OFFSET_Y);
+		c = nunchuk_buttonC();
+		z = nunchuk_buttonZ();
+	}
+	#endif
+}
+
+void WiiNunchuck::print()
+{
+	#ifndef IS_QT
+		Serial.print(joystick_x, DEC);
+		Serial.print(",");
+		Serial.print(joystick_y, DEC);
+		Serial.print(",");
+		Serial.print(pitch, DEC);
+		Serial.print(",");
+		Serial.print(roll, DEC);
+		Serial.print(",");
+		Serial.print(c, DEC);
+		Serial.print(",");
+		Serial.print(z, DEC);
+		Serial.print("\n");
+#endif
+}
+
+int8 WiiNunchuck::toInt8(int16 number)
+{
+	if (number > 127)
+		return 127;
+	if (number < -128)
+		return -128;
+	return (int8)number;
+}
+
+uint8 WiiNunchuck::toUint8(uint16 number)
+{
+	if (number > 255)
+		return 255;
+	return (uint8)number;
 }

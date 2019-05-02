@@ -33,6 +33,7 @@ Thx!
 #include "RF24.h"
 #include "SPI.h"
 
+//RF24 radio(4,15);
 RF24 radio(4,15);
 
 const uint64_t pipe = 0x0123456789123; // Needs to be the same for communicating between 2 NRF24L01 
@@ -44,7 +45,7 @@ void setup(void)
   Serial.begin(115200);
   radio.begin(); // Start the NRF24L01
   delay(10);
-  radio.setPALevel(RF24_PA_MIN);
+  radio.setPALevel(RF24_PA_HIGH);
   delay(1);
   radio.openWritingPipe(address); // Get NRF24L01 ready to transmit
   delay(1);
@@ -54,8 +55,8 @@ void loop(void)
 {
   int msg = 111;
   delay(1);
-  ESP.wdtDisable();
+  ///ESP.wdtDisable();
   radio.write(&msg, sizeof(int)); // Send value through NRF24L01
-  ESP.wdtEnable(1);
+  //ESP.wdtEnable(1);
   delay(1000);
 }

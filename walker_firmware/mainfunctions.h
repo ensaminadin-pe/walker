@@ -6,15 +6,14 @@
 #ifndef MAINFUNCTIONS_H
 #define MAINFUNCTIONS_H
 
-#include "types.h"
 #include "arduinopolyfill.h"
 #include "wiinunchuck.h"
 
-static uint32 update_time;
-static WiiNunchuck direction_nunchuk;
+static unsigned long update_time;
+static WiiNunchuck direction_nunchuck;
 
 void main_setup();
 void main_loop();
-uint32 diff();
+unsigned long diff();
 
 #endif // MAINFUNCTIONS_H

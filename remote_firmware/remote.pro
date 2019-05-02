@@ -10,7 +10,8 @@ SOURCES += \
     main.cpp \
     mainfunctions.cpp \
     wiinunchuck.cpp \
-    stdpolyfill.cpp
+    stdpolyfill.cpp \
+    radio.cpp
 
 HEADERS += \
     arduinopolyfill.h \
@@ -18,4 +19,5 @@ HEADERS += \
     types.h \
     wiinunchuck.h \
     stdpolyfill.h \
-    config.h
+    config.h \
+	radio.h

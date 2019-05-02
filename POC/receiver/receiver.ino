@@ -28,7 +28,7 @@ void setup()
   delay(1);
   radio.openReadingPipe(0, address);   //Setting the address at which we will receive the data
   delay(1);
-  radio.setPALevel(RF24_PA_MIN);       //You can set this as minimum or maximum depending on the distance between the transmitter and receiver.
+  radio.setPALevel(RF24_PA_HIGH);       //You can set this as minimum or maximum depending on the distance between the transmitter and receiver.
   delay(1);
   radio.startListening();              //This sets the module as receiver
   delay(1);

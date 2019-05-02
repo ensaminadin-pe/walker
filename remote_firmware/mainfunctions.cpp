@@ -1,4 +1,6 @@
 #include "mainfunctions.h"
+#include "radio.h"
+#include "config.h"
 #include <stdio.h>
 #include "wiinunchuck.h"
 
@@ -10,13 +12,25 @@
 
 /// - This is the core of the program
 
-static uint32 update_time;
+unsigned long diff()
+{
+	unsigned long diff = update_time - millis();
+	if (diff < 1)
+	{
+		delay(1);
+		diff = 1;
+	}
+
+	return diff;
+}
 
 void main_setup()
 { //Arduino like setup
 	/// Setup your remote here
-	//sRadioTransmitter->setup(10, 123456789); //Radio data on pin 10, can be anything
-	/// Setup wii nunchuck reader
+	//1) Setup radio transmitter
+	sRadio->setup(RADIO_PIN, RADIO_ADRESS, RADIO_TRANSMIT); //Radio data on pin 10, can be anything
+	//2) Setup nunchuck
+	direction_nunchuck.initNunchuckReading();
 }
 
 void main_loop()
@@ -28,18 +42,27 @@ void main_loop()
 		return;
 	}
 
-	//2) Calculate loop diff time
-	int diff = millis() - update_time;
-	if (diff <= 1) //Less than 1ms, delay update, we need at least 1ms of diff
-	{
-		delay(1);
-		diff = 1;
-	}
+	//2) Main logic here
+	//2.1) Update nunchuck
+	direction_nunchuck.read();
+	//2.2) Send nunchuck datas
+	sendNunchuckUpdate(diff());
+
+	//3) Update time
 	update_time = millis();
+}
 
-	//3) Add control logic here
-	//   - remote control actions to set next gait
-	//   - sensor detection and whatnot
+void sendNunchuckUpdate(unsigned long diff)
+{
+	if (send_nunchuck_timer <= diff)
+	{
+		nunchuck_packet = WiiNunchuckPacket();
+		direction_nunchuck.buildPacket(&nunchuck_packet);
+		direction_nunchuck.print();
+		sRadio->send(&nunchuck_packet, sizeof(nunchuck_packet));
+		send_nunchuck_timer = UPDATE_SPEED;
+	}
+	else
+		send_nunchuck_timer -= diff;
 
-	//4) Run walker update loop
 }

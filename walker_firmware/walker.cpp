@@ -112,6 +112,7 @@ void Walker::addJoints(uint8 count)
 {
 	if (!legs)
 		return;
+	joint_count = count;
 	for (uint8 i = 0; i < leg_count; i++)
 	{
 		if (!legs[i])
@@ -119,7 +120,6 @@ void Walker::addJoints(uint8 count)
 		legs[i]->freeJoints();
 		legs[i]->addJoints(count);
 	}
-	joint_count = count;
 }
 
 /**

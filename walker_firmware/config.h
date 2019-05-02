@@ -16,6 +16,10 @@
 #define SERVO_UPDATE_FREQUENCY 60 //60Hz
 // Radio
 #define RADIO_ADRESS	123456798
-#define RADIO_PIN		10
+#ifdef ARDUINO_ESP8266_NODEMCU
+	#define RADIO_PIN		0 //GPIO0 = D3
+#else
+	#define RADIO_PIN		10
+#endif
 
 #endif // CONFIG

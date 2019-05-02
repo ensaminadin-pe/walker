@@ -1,6 +1,7 @@
 #define IS_ARDUINO
 #include <Arduino.h>
 #include "mainfunctions.h"
+#include "config.h"
 
 //Libraries to install :
 // - https://github.com/nRF24/RF24

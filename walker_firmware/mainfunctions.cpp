@@ -34,7 +34,7 @@
 
 //static uint32 update_time;
 
-uint32 diff()
+unsigned long diff()
 {
 	return update_time - millis();
 }
@@ -65,7 +65,6 @@ void main_setup()
 
 void main_loop()
 { //Arduino like loop
-	/// - TODO - Radio result structure
 	//1) Setup loop diff time
 	if (update_time == 0)
 	{
@@ -76,9 +75,11 @@ void main_loop()
 	//2) Add control logic here
 	//   - sensor detection and whatnot
 	uint8* radio_packet = sRadio->update(diff());
-	if (radio_packet && direction_nunchuk.handlePacket((WiiNunchuckPacket*)radio_packet))
+	if (radio_packet && direction_nunchuck.handlePacket((WiiNunchuckPacket*)radio_packet))
 	{ // Has a radio update & packet was correct
+		direction_nunchuck.print();
 		//   - remote control actions to set next gait
+		//direction_nunchuck.print();
 	}
 
 	//3) Run walker update loop
