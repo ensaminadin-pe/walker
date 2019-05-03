@@ -37,14 +37,20 @@ Gait* GaitDictionary_4_2::getGait(uint16 id)
 		case 1000: return new Gait_4_2_Forward(id);
 		case 1001: return new Gait_4_2_Turn_Left(id);
 		case 1002: return new Gait_4_2_Turn_Right(id);
+
+		case 1100: return new Gait_4_2_Crawl_Forward(id);
+		case 1101: return new Gait_4_2_Crawl_Backward(id);
+		case 1110: return new Gait_4_2_Crawl_Sideway_Left(id);
+		case 1111: return new Gait_4_2_Crawl_Sideway_Right(id);
+
+		case 1200: return new Gait_4_2_Strafe_Right(id);
 		// 2000 - 2999 : Emotes
 		case 2000: return new Gait_4_2_Dance(id);
-		case 2100:
-			return new Gait_4_2_Leg0(id);
-		break;
+		case 2100: return new Gait_4_2_Leg0(id);
 		case 2101: return new Gait_4_2_Leg1(id);
 		case 2102: return new Gait_4_2_Leg2(id);
 		case 2103: return new Gait_4_2_Leg3(id);
+		case 2110: return new Gait_4_2_Hello(id);
 	}
 	return 0;
 }

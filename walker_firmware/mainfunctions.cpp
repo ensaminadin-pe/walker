@@ -36,7 +36,83 @@
 
 unsigned long diff()
 {
-	return update_time - millis();
+	unsigned long _diff = millis() - update_time;
+	if (_diff < 1)
+		return 1;
+	return _diff;
+}
+
+void update_movement()
+{
+	unsigned int _movement = 0;
+	if (direction_nunchuck.getJoystickX() > 0)
+		_movement += map_movement_value(MOVEMENT_RIGHT_LOW, direction_nunchuck.getJoystickX());
+	else
+		_movement += map_movement_value(MOVEMENT_LEFT_LOW, direction_nunchuck.getJoystickX());
+	if (direction_nunchuck.getJoystickY() > 0)
+		_movement += map_movement_value(MOVEMENT_UP_LOW, direction_nunchuck.getJoystickY());
+	else
+		_movement += map_movement_value(MOVEMENT_DOWN_LOW, direction_nunchuck.getJoystickY());
+	movement = _movement;
+}
+
+void update_gait(unsigned long time_diff)
+{
+	if (gait_update_time > time_diff)
+	{
+		gait_update_time -= time_diff;
+		return;
+	}
+	gait_update_time = 100;
+
+	if (remote_timeout <= time_diff)
+	{ //Lost the remote, go back to idle
+		sWalker->setNextGait(1);
+		return;
+	}
+
+	//Choose the gait to run
+	if (direction_nunchuck.cPressed() && direction_nunchuck.zPressed())
+		sWalker->setNextGait(2);
+	else if (direction_nunchuck.cPressed())
+		sWalker->setNextGait(2110);
+	else if (direction_nunchuck.zPressed())
+	{
+		if (movement & MOVEMENT_UP_HIGH)
+			sWalker->setNextGait(1100);
+		else if (movement & MOVEMENT_LEFT_HIGH)
+			sWalker->setNextGait(1110);
+		else if (movement & MOVEMENT_DOWN_HIGH)
+			sWalker->setNextGait(1101);
+		else if (movement & MOVEMENT_RIGHT_HIGH)
+			sWalker->setNextGait(1111);
+		else
+			sWalker->setNextGait(1);
+	}
+	else if (movement & MOVEMENT_UP_HIGH)
+		sWalker->setNextGait(1100);
+	else if (movement & MOVEMENT_LEFT_HIGH)
+		sWalker->setNextGait(1001);
+	else if (movement & MOVEMENT_DOWN_HIGH)
+		sWalker->setNextGait(1101);
+	else if (movement & MOVEMENT_RIGHT_HIGH)
+		sWalker->setNextGait(1002);
+	else
+		sWalker->setNextGait(1);
+}
+
+unsigned int map_movement_value(unsigned int base, signed short joystick_value)
+{
+	if (joystick_value < 0)
+		joystick_value *= -1;
+	if (joystick_value < MOVEMENT_LOW_THRESHOLD)
+		return 0;
+	if (joystick_value >= MOVEMENT_LOW_THRESHOLD && joystick_value < MOVEMENT_MID_THRESHOLD)
+		return base;
+	if (joystick_value >= MOVEMENT_MID_THRESHOLD && joystick_value < MOVEMENT_HIGH_THRESHOLD)
+		return base * 2;
+	if (joystick_value >= MOVEMENT_HIGH_THRESHOLD)
+		return base * 4;
 }
 
 void main_setup()
@@ -78,20 +154,15 @@ void main_loop()
 	if (radio_packet && direction_nunchuck.handlePacket((WiiNunchuckPacket*)radio_packet))
 	{ // Has a radio update & packet was correct
 		direction_nunchuck.print();
-		//   - remote control actions to set next gait
-		if (direction_nunchuck.getJoystickX() >= 80)
-			sWalker->setNextGait(2100);
-		else if (direction_nunchuck.getJoystickX() <= -80)
-			sWalker->setNextGait(2103);
-		else if (direction_nunchuck.getJoystickY() >= 80)
-			sWalker->setNextGait(2102);
-		else if (direction_nunchuck.getJoystickY() <= -80)
-			sWalker->setNextGait(2101);
-		else
-			sWalker->setNextGait(1);
+		update_movement();
+		//movement = 4;
+		remote_timeout = 2000;
 	}
 
-	//3) Run walker update loop
+	//3) Update gaits with remote infos
+	update_gait(diff());
+
+	//4) Run walker update loop
 	sWalker->update(diff());
 	update_time = millis();
 }
