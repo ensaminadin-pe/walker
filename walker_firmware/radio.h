@@ -100,8 +100,8 @@ class Radio
 		RF24*		getRadio() { return radio; }
 		RadioState	getState() { return state; }
 	private:
-		void	setupListenBuffer();
-		void	clearListenBuffer();
+		void		setupListenBuffer();
+		void		clearListenBuffer();
 		uint8		transmission_pin;
 		uint64		address;
 		uint8		channel;

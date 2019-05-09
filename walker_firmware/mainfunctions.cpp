@@ -11,6 +11,53 @@
 #else
 	#include "stdpolyfill.h"
 #endif
+/*
+Alternative to gait : animations, list of servos angles
+	Need to find a way to build a static version of this
+	Ex: a raw file with everything in binary that is loaded when needed
+	Might need a tool to test the movements frame per frame too
+	Might need a format to store animation dictionaries
+	Animation
+		uint8	leg_count
+		uint8	joint_count
+		uint8	frame_count
+		uint8	type			- 0 = fixed position, 1 = movement, 2 = emote
+		uint16	duration		- animation duration in ms
+		Frame	frames[]		- animation frames
+	Frame
+		uint16		option			- flag or something, do an action
+		uint16		option_value	- option value, ex if flag = 1, option value will be an id of sound to play or something like that
+		uint8[X]	angle			- 0-180
+
+Unit infos
+	. radio connection status : (red)cannot connect module, (blue)radio off, (orange)connection lost, (green)connection on
+	. battery level (how to read ?)
+
+Radio connectivity
+	Requirements :
+		. timeout detection
+		. receiver reset
+	Setup	=	set wich pins are used
+	Link	=	clear current link
+				open new link
+	Update	=	check if SPI bus is ok
+					link if not, cannot link = nothing to do
+				reset timeout of 1 sec
+				read packet and update remote datas
+
+Servo control boards
+	Requirements :
+		. easy access to 2 default positions :
+			- folded
+			- idle
+
+Hardware updgrade
+	. Easy swap 7.4v Li ion battery
+	. allow voltage input via 9/12 ? volt DC jack input, bypass battery
+	. remote port : put remote on the body, charge remote and keep reading datas
+	. rotating turret (360°? 180°?) with easy attachment snap on
+	. bb gun attachment
+ */
 
 /// - This is the core of the program
 /// 1) Hardware setup for Arduino
