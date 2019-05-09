@@ -157,7 +157,7 @@ void Walker::reset()
  * @brief Walker::update Main walker update
  * @param diff
  */
-void Walker::update(uint32 diff)
+void Walker::update(unsigned int diff)
 {
 	if (update_timer <= diff)
 	{

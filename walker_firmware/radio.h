@@ -70,7 +70,7 @@ class Radio
 		static Radio* instance();
 		// - Main
 		void	setup(uint8 _transmission_pin, uint64 _address, RadioFlag _flag, uint8 _channel = 0, uint8 power_level = RF24_PA_HIGH, uint8 _listen_size = 32);
-		uint8	*update(uint32 diff);
+		uint8	*update(unsigned int diff);
 		void	send(const void* buffer, uint8 size);
 		void	setListenSize(uint8 size);
 		RF24*	getRadio() { return radio; }

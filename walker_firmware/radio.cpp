@@ -52,7 +52,7 @@ void Radio::setup(uint8 _transmission_pin, uint64 _address, RadioFlag _flag, uin
 	esp8266_delay(); //ESP8266 watchdog delay
 }
 
-uint8* Radio::update(uint32 diff)
+uint8* Radio::update(unsigned int diff)
 {
 	if (update_timer <= diff)
 	{

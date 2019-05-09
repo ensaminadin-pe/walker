@@ -41,7 +41,7 @@ class Walker
 		float increaseGaitSpeed();
 		float decreaseGaitSpeed();
 		// - Main
-		void update(uint32 diff);
+		void update(unsigned int diff);
 		void setNextGait(uint16 gait_id);
 		// - Debug
 		void print();

@@ -4,7 +4,7 @@
 #include "arduinopolyfill.h"
 #include "types.h"
 
-static void esp8266_delay(uint32 time = 1)
+static void esp8266_delay(unsigned int time = 1)
 {
 	#ifdef ARDUINO_ESP8266_NODEMCU
 		if (time > 1)
