@@ -1,6 +1,7 @@
 #include "radio.h"
 #include "esp8266_watchdog.h"
 #include <stdlib.h>
+#include <Arduino.h>
 
 Radio::Radio()
 {
@@ -46,6 +47,9 @@ void Radio::setup(uint8 _transmission_pin, uint64 _address, RadioFlag _flag, uin
 	listen_size = _listen_size;
 	listen_buffer = 0;
 	radio = new RF24(transmission_pin, RF24_PIN_CE);
+
+	//3) Init radio
+	link(true);
 }
 
 /**
@@ -56,7 +60,8 @@ bool Radio::hasLink()
 {
 	if (!radio) //No radio setup, no link
 		return false;
-	if (radio && radio->isChipConnected())
+
+	if (!radio->isChipConnected())
 	{ //Radio setup but SPI is down
 		state = RADIO_STATE_NO_CONNECTION;
 		return false;
@@ -77,7 +82,7 @@ bool Radio::link(bool reset)
 		return false;
 
 	//2) Test reset radio
-	if (hasLink() && !reset) //Do not reset current active radio
+	if (!reset && hasLink()) //Do not reset current active radio
 		return true;
 
 	//3) Setup radio
@@ -176,9 +181,18 @@ uint8* Radio::update(unsigned int diff)
  */
 void Radio::send(const void *buffer, uint8 size)
 {
-	if (!hasLink() || !(flag & RADIO_TRANSMIT))
+	//1) Check if allowed to send
+	if (!(flag & RADIO_TRANSMIT))
 		return;
 
+	//2) Check that SPI link is ok, relink if not
+	if (!hasLink())
+	{
+		if (!link(true))
+			return 0; //Could not relink, try next time
+	}
+
+	//3) Send message
 	esp8266_delay(100); //ESP8266 watchdog delay
 	radio->write(buffer, size);
 	esp8266_delay(2); //ESP8266 watchdog delay

@@ -56,11 +56,11 @@ void sendNunchuckUpdate(unsigned long diff)
 {
 	if (send_nunchuck_timer <= diff)
 	{
+		send_nunchuck_timer = UPDATE_SPEED;
 		nunchuck_packet = WiiNunchuckPacket();
 		direction_nunchuck.buildPacket(&nunchuck_packet);
 		direction_nunchuck.print();
 		sRadio->send(&nunchuck_packet, sizeof(nunchuck_packet));
-		send_nunchuck_timer = UPDATE_SPEED;
 	}
 	else
 		send_nunchuck_timer -= diff;

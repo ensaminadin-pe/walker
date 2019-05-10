@@ -9,6 +9,12 @@
 #else
 	#include "arduinopolyfill.h"
 #endif
+/* ---------------------------
+ * Operation :
+ *	. Check connection
+ *  . Ability to reset PSI connection to module
+ *  . Detect timeout
+ * --------------------------- */
 
 /* ---------------------------
  * Arduino Nano pins :
@@ -43,7 +49,7 @@
 #ifdef ARDUINO_AVR_UNO
 	#define RF24_PIN_CE 10 ///TODO - TEST THIS
 #elif ARDUINO_AVR_NANO
-	#define RF24_PIN_CE 10 //Pin D10
+	#define RF24_PIN_CE 10 //Pin D9
 #elif ARDUINO_AVR_MINI
 	#define RF24_PIN_CE 13 ///TODO - TEST THIS
 #elif ARDUINO_ESP8266_NODEMCU
@@ -52,10 +58,24 @@
 	#define RF24_PIN_CE 1 //No pin, no game
 #endif
 
-enum RadioFlag
+#define RADIO_TIMEOUT		1000 // 1000ms since last correct reception
+#define RADIO_UPDATE_TIMER	10   // Update every 10 ms
+
+enum RadioFlag : uint8
 {
+	RADIO_NONE		= 0,
 	RADIO_TRANSMIT	= 1,
 	RADIO_RECEIVE	= 2
+};
+
+enum RadioState : uint8
+{
+	RADIO_STATE_NONE			= 0,	// Just init
+	RADIO_STATE_NO_CONNECTION	= 1,	// Connection to NRF24 module is broken
+	RADIO_STATE_OFF				= 2,	// Do not care about radio signal
+	RADIO_STATE_TIMEOUT			= 3,	// Connected to NRF24 but stopped receiving datas
+	RADIO_STATE_CONNECTED		= 4,	// Connected to NRF24
+	RADIO_STATE_RECEIVING		= 5		// Connected to NRF24 and receiving datas
 };
 
 /// - Radio receiver
@@ -69,19 +89,27 @@ class Radio
 		// - Getters
 		static Radio* instance();
 		// - Main
-		void	setup(uint8 _transmission_pin, uint64 _address, RadioFlag _flag, uint8 _channel = 0, uint8 power_level = RF24_PA_HIGH, uint8 _listen_size = 32);
-		uint8	*update(uint32 diff);
-		void	send(const void* buffer, uint8 size);
-		void	setListenSize(uint8 size);
-		RF24*	getRadio() { return radio; }
+		void		setup(uint8 _transmission_pin, uint64 _address, RadioFlag _flag, uint8 _channel = 0, uint8 _power_level = RF24_PA_HIGH, uint8 _listen_size = 32);
+
+		bool		hasLink();
+		bool		link(bool reset = false);
+
+		uint8*		update(unsigned int diff);
+		void		send(const void* buffer, uint8 size);
+		void		setListenSize(uint8 size);
+		RF24*		getRadio() { return radio; }
+		RadioState	getState() { return state; }
 	private:
-		void	setupListenBuffer();
-		void	clearListenBuffer();
+		void		setupListenBuffer();
+		void		clearListenBuffer();
 		uint8		transmission_pin;
 		uint64		address;
-		RadioFlag	flag;
 		uint8		channel;
+		uint8		power_level;
+		RadioState	state;
+		RadioFlag	flag;
 		uint16		update_timer;
+		uint16		timeout_timer;
 		uint8		listen_size; //Reception buffer size
 		uint8*		listen_buffer;
 		RF24*		radio;
