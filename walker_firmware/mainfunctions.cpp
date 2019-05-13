@@ -12,23 +12,59 @@
 	#include "stdpolyfill.h"
 #endif
 /*
-Alternative to gait : animations, list of servos angles
-	Need to find a way to build a static version of this
-	Ex: a raw file with everything in binary that is loaded when needed
-	Might need a tool to test the movements frame per frame too
-	Might need a format to store animation dictionaries
-	Animation
-		uint8	leg_count
-		uint8	joint_count
-		uint8	frame_count
-		uint8	type			- 0 = fixed position, 1 = movement, 2 = emote
-		uint16	duration		- animation duration in ms
-		Frame	frames[]		- animation frames
-	Frame
+Implement inversed kinematics
+Fuck gaits
+-https://github.com/henriksod/Fabrik2DArduino
+
+Change robot setup :
+	leg count
+	joint1 distance = 0
+	jointX distance = from joint X - 1
+	...
+
+Movements are list of X/Y/Z positions for each legs
+Movement struct:
+	uint8		frame_count
+	uint8		type			- 0 = fixed position, 1 = movement, 2 = emote
+	Position	positions[]		- leg tip positions
+	Position
 		uint16		option			- flag or something, do an action
 		uint16		option_value	- option value, ex if flag = 1, option value will be an id of sound to play or something like that
-		uint8[X]	angle			- 0-180
+		Point		points[]		- one for each leg
+		uint16		forced_delay	- if not 0, this is the time in ms spent to execute this position, allow to bypass user modified speed for emotes and whatnot
+	Point
+		uint16		x | - X & Y used in inversed kinematics
+		uint16		y |
+		uint16		z   - Z used to calculate top view rotation
 
+Rewrite servo movement
+	On startup, check pulse range
+	Build array of 180 uint16 (360 bytes of memory), each contain the correct pulse width for
+	the target angle, angle is array key
+	This way we calculate only once the target pulse width for an angle, want to move to -12° ? Check the (90 - 12) position in the array and voila
+
+Rewrite movement update
+	Movement* movement;		//Loaded movement
+	uint8 movement_frame;	//Current frame in the loaded movement
+	uint8 servo_rotation;	//This determine the movement speed, maximum servo angle change
+	Leg legs[]
+		bool done;
+		Joint joints[]
+			uint8 current_position;
+			uint8 target_position;
+
+	- Reversed kinematics will calculate the target servo angle once on load
+	- In our update loop we will change the current servo position by a variable value X
+	- Changing X will increase/decrease the robot movement speed without seamlessly
+	- Servo position updates are every 20ms (60Hz) but the amplitude of rotation will change
+
+	update current position to reach target position
+	cannot move more than X° per update, maximum is servo's top tolerance, X is variable
+	when a leg reach its target position toggle it to done, (load next movement?)
+	when all legs are done, load next positions to reach in each legs and reset done
+	if no new Position, load default Position stance
+	if Movement struct is repetable, reset and load first Position
+------------------------------------------------------------------------------------------------
 Unit infos
 	. radio connection status : (red)cannot connect module, (blue)radio off, (orange)connection lost, (green)connection on
 	. battery level (how to read ?)
