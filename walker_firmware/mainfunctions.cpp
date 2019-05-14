@@ -200,26 +200,56 @@ unsigned int map_movement_value(unsigned int base, signed short joystick_value)
 
 void main_setup()
 { //Arduino like setup
-	/// Setup your remote here
+	/// - Setup your configurations in the config.h file
+	//1) Setup remote
 	sRadio->setup(RADIO_PIN, RADIO_ADRESS, RADIO_RECEIVE); //Radio data on pin 10, can be anything
 	sRadio->setListenSize(sizeof(WiiNunchuckPacket));
-	/// Setup your walker here
-	//1) Setup leg & joint counts
-	sWalker->setup(4, 2);
-	printf("Leg count : %i\n", sWalker->getLegCount());
-	printf("Joint count : %i\n", sWalker->getJointCount());
-	//2) Init Oscillators & servos
-	sWalker->init();
-	//3) Setup servo pulse range
+	// --------------------------------------------------------------------------------------------
+	//2) Setup servo drivers
 	//  This is the tricky part, you need to find the 0 and 180° pulse width yourself
-	//	Its a number between 0 and 4095 and, for my sg90s it's 145 and 515 at 60Hz
-	sServoDriver->setFrequency(SERVO_UPDATE_FREQUENCY); //60Hz
-	sServoDriver->setupAngleRange(-90.0f, 90.0f);
-	sServoDriver->setupPulseRange(145, 515); //0° and 180°
-	printf("Walker is init !\n");
-	//4) Setup default Gait for number of legs and joint
-	//   default should be stand position for calibration
-	sWalker->setNextGait(1);
+	//	Its a number between 0 and 4095 and
+	//  - for my sg90s it's 145 and 515 at 60Hz
+	//  - For my MG92B it's 345 and 995 at 120Hz for -60° to 60° :/
+	sServoDriver->setupDrivers(DRIVER_BOARD_COUNT, DRIVER_BOARD_FREQUENCY);
+	sServoDriver->setupPulseRange(SERVO_MIN_PULSE, SERVO_MAX_PULSE, SERVO_ANGLE_GRANULARITY);
+	sServoDriver->setupAngleRange(SERVO_MIN_ANGLE, SERVO_MAX_ANGLE);
+	// --------------------------------------------------------------------------------------------
+	//3) Setup legs
+	// Legs are init left to right, top to bottom :
+	//
+	//    Leg1    front     Leg2
+	// --02--01--00----03--04--05--
+	//           |      |
+	//    Leg2   |      |   Leg3
+	// --08--07--06----09--10--11--
+	//
+	// Leg is specified by :
+	//  - index and number of joints
+	//  - each joint must have an adress : board & index
+	//  - servos are not totally centered, you can setup a small pulse offset to set the servo at an exact 0 position
+	//  - you need to specify the distance between each joints in mm for the inversed kinematic to work
+	//    for each joint, give the distance from the middle of the joint to the middle of the next joint,
+	//	  for the last joint give the distance to the leg tip
+	//  - This doesnt need to be 0.1mm precise, 0.3/4mm of margin is ok. Ex: round up 25.31 to 25.5
+	///	uint8 leg_index = sWalker->addLeg();
+	/// //Add joints from top to bottom
+	/// WalkerLeg* leg = sWalker->getLeg(leg_index);
+	/// leg->addJoint(0, 0, 0, 25.0f); //Top joint : board 0, board index 0, offset 0, dimention to next 25.0f
+	/// leg->addJoint(0, 1, -2, 41.5f); //Top joint : board 0, board index 1, offset -2, dimention to next 41.5f
+	/// leg->addJoint(0, 2, 5, 89.0f); //Top joint : board 0, board index 2, offset 5, dimention to next 89.0f
+	// --------------------------------------------------------------------------------------------
+	//4) Load default position
+	// - https://github.com/henriksod/Fabrik2DArduino
+	/// sWalker->setPosition(sPositionsDictionary->getDefault());
+	/// sWalker->initPosition();
+	// --------------------------------------------------------------------------------------------
+	//5) Test legs, bip or do some shit to show that the walker is ok
+	// - https://github.com/AnonymousAlly/Arduino-Music-Codes
+	/// for (uint8 i = 0; i < sWalker->getLegCount(); i++)
+	/// {
+	///		sWalker->getLeg(i)->test(); //Test move
+	///		delay(200);
+	/// }
 }
 
 void main_loop()

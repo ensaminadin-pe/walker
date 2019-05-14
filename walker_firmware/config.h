@@ -1,19 +1,22 @@
 #ifndef CONFIG
 #define CONFIG
 
-// Main
+// System
+#define DEBUG_ON			//Uncomment this to see debug in the serial monitor
 #define BAUD_RATE		9600//9600 bps
 #define UPDATE_SPEED	20	//20ms = 60Hz
-// Gaits
-#define GAIT_DEFAULT_DURATION	1000
-#define GAIT_DEFAULT_PERIOD		1000
-#define GAIT_DEFAULT_AMPLITUDE	90
 // Walker
 #define MIN_GAIT_SPEED	0.5f
 #define MAX_GAIT_SPEED	1.5f
 #define GAIT_SPEED_INCREMENT 0.1f
 // Servos
-#define SERVO_UPDATE_FREQUENCY 60 //60Hz
+#define DRIVER_BOARD_COUNT		2
+#define DRIVER_BOARD_FREQUENCY	60 //60Hz
+#define SERVO_MIN_PULSE			345
+#define SERVO_MAX_PULSE			995
+#define SERVO_ANGLE_GRANULARITY	1.0f
+#define SERVO_MIN_ANGLE			-60.0f
+#define SERVO_MAX_ANGLE			60.0f
 // Radio
 #define RADIO_ADRESS	123456798
 #ifdef ARDUINO_ESP8266_NODEMCU

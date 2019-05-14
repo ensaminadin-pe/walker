@@ -6,11 +6,8 @@
 
 ServoDriver::ServoDriver()
 {
-	driver_count = 0;
-	frequency = SERVO_DRIVER_DEFAULT_FREQUENCY;
-	setupPulseRange(SERVO_DRIVER_DEFAULT_MIN_PULSE, SERVO_DRIVER_DEFAULT_MAX_PULSE);
-	setupAngleRange(SERVO_DRIVER_DEFAULT_MIN_ANGLE, SERVO_DRIVER_DEFAULT_MAX_ANGLE);
 	drivers = 0;
+	pulse_table = 0;
 }
 
 ServoDriver::~ServoDriver()
@@ -29,103 +26,24 @@ ServoDriver *ServoDriver::instance()
 	return &instance;
 }
 
-void ServoDriver::setServoCount(uint16 _servo_count)
-{
-	int _driver_count = _servo_count / SERVO_DRIVER_CAPACITY;
-	if (_servo_count - (_driver_count * SERVO_DRIVER_CAPACITY) > 0)
-		_driver_count++;
-	driver_count = _driver_count;
-}
-
-void ServoDriver::setDriverCount(uint8 _driver_count)
-{
-	driver_count = _driver_count;
-}
-
-void ServoDriver::setFrequency(float _frequency)
-{
-	frequency = _frequency;
-}
-
-void ServoDriver::setupPulseRange(uint16 min, uint16 max)
-{
-	if (min >= max)
-		min = max -1;
-
-	min_pulse_width = min;
-	max_pulse_width = max;
-	total_pulse_range = (max_pulse_width - min_pulse_width);
-	angle_factor = (float)total_pulse_range / 180.0f;
-}
-
-void ServoDriver::setupAngleRange(float min, float max)
-{
-	if (min >= max)
-		min = max -1;
-
-	min_angle = min;
-	max_angle = max;
-}
-
 /**
- * @brief ServoDriver::setServo Set a target servo to a given angle
- * @param index
- * @param angle
+ * @brief ServoDriver::setupDrivers Setup X driver boards with a frequency of Y
+ * @param board_count
+ * @param frequency
  */
-void ServoDriver::setServo(uint16 index, float angle)
-{
-	//1) Locate the driver
-	uint8 driver_index = index / SERVO_DRIVER_CAPACITY;
-	if (driver_count == 0 || !drivers || driver_index + 1 > driver_count || !drivers[driver_index])
-		return; //Cannot access driver
-
-	//2) Update the angle
-	if (angle > max_angle)
-		angle = max_angle;
-	if (angle < min_angle)
-		angle = min_angle;
-
-	//3) Set pwm on target driver's index
-	index -= (driver_index * SERVO_DRIVER_CAPACITY);
-	int pulse = angleToPulseWidth(angle);
-	drivers[driver_index]->setPWM(index, 0, pulse);
-}
-
-/**
- * @brief ServoDriver::angleToPulseWidth Convert an angle to a correct PWM pulse width
- * @param angle
- * @return
- */
-int ServoDriver::angleToPulseWidth(float angle)
-{
-	//                                                   get correct pulse factor
-	//	set to 0-180° range	  get total pulse range		             |     put pulse in correct place
-	// (angle - min_angle) * ((max_pulse_width - min_pulse_width) / 180) + min_pulse_width
-	return min_pulse_width + (((float)angle - min_angle) * angle_factor);
-}
-
-void ServoDriver::clearDrivers()
-{
-	if (!drivers)
-		return;
-	for (uint8 i = 0; i < driver_count; i++)
-	{
-		if (drivers[i])
-			delete drivers[i];
-	}
-	free(drivers);
-	drivers = NULL;
-}
-
-void ServoDriver::initDrivers()
+void ServoDriver::setupDrivers(uint8 board_count, uint16 frequency)
 {
 	//1) Cleanup
 	clearDrivers();
+
+	//2) Allocate driver space
+	driver_frequency = frequency;
+	driver_count = board_count;
 	drivers = (Adafruit_PWMServoDriver**)malloc(sizeof(Adafruit_PWMServoDriver*) * driver_count);
 	if (!drivers)
 		return;
 
-	//2) Setup drivers with incremental addresses
+	//3) Setup drivers with incremental addresses
 	uint8 addr = 0x40;
 	for (uint8 i = 0; i < driver_count; i++)
 	{
@@ -141,9 +59,125 @@ void ServoDriver::initDrivers()
 
 		//2.3) Init new driver
 		drivers[i]->begin();
-		drivers[i]->setPWMFreq(frequency);
+		drivers[i]->setPWMFreq(driver_frequency);
 		#ifndef IS_QT
 			delay(10); // Need some time to init
 		#endif
 	}
+}
+
+/**
+ * @brief ServoDriver::clearDrivers Clear allocated drivers
+ */
+void ServoDriver::clearDrivers()
+{
+	//1) If no drivers, skip
+	if (!drivers)
+		return;
+
+	//2) Delete every drivers
+	for (uint8 i = 0; i < driver_count; i++)
+	{
+		if (drivers[i])
+			delete drivers[i];
+	}
+
+	//3) Free allocated memory
+	free(drivers);
+	drivers = NULL;
+}
+
+/**
+ * @brief ServoDriver::setupPulseRange Setup the min and max pulse range and build a pulse table for every rotation defined by the granularity, ex granularity = 0.5, one entry per 0.5 degree
+ * @param min
+ * @param max
+ * @param granularity
+ */
+void ServoDriver::setupPulseRange(uint16 min, uint16 max, float granularity)
+{
+	//1) Check datas
+	if (min >= max)
+		min = max - 1;
+
+	//2) Store pulse width
+	min_pulse_width = min;
+	max_pulse_width = max;
+
+	//3) Build pulse table for given granularity
+	pulse_table_granularity = 180.0f / (180.0f / granularity);
+	pulse_table_size = 180.0f / pulse_table_granularity; //Convert to integer
+	if (pulse_table)
+	{//Clear pulse table if needed
+		free(pulse_table);
+		pulse_table = NULL;
+	}
+	//Allocate pulse table space, this might take too much memory if your granularity is too low
+	pulse_table = (uint16*)malloc(sizeof(uint16) * pulse_table_size);
+	if (!pulse_table)
+		return;
+	//Fill the pulse table
+	float angle_factor = ((float)(max_pulse_width - min_pulse_width)) / 180.0f;
+	float angle = 0.0f;
+	for (int i = 0; i < pulse_table_size; i++)
+	{
+		pulse_table[i] = min_pulse_width + (angle * angle_factor);
+		angle += pulse_table_granularity;
+	}
+}
+
+/**
+ * @brief ServoDriver::setupAngleRange Setup angle range for the servos
+ * @param min
+ * @param max
+ */
+void ServoDriver::setupAngleRange(float min, float max)
+{
+	if (min >= max)
+		min = max -1;
+
+	min_angle = min;
+	max_angle = max;
+}
+
+/**
+ * @brief ServoDriver::setServo Set a target servo to a given angle
+ * @param index
+ * @param angle
+ */
+void ServoDriver::setServo(uint8 board, uint8 index, float angle, int16 offset)
+{
+	//1) Check datas
+	if (!drivers || board > (driver_count - 1) || !drivers[board] || index > 15)
+		return; //Doesnt exist
+
+	//2) Update the angle
+	if (angle > max_angle)
+		angle = max_angle;
+	if (angle < min_angle)
+		angle = min_angle;
+
+	//3) Find correct PWM
+	uint16 pulse_index = (uint16)(angle / pulse_table_granularity);
+	if (pulse_index < 0)
+		pulse_index = 0;
+	else if (pulse_index > pulse_table_size - 1)
+		pulse_index = pulse_table_size - 1;
+
+	//4) Handle pulse width offset
+	uint16 pulse = pulse_table[pulse_index];
+	if (offset != 0)
+	{ //Apply servo offset
+		if (offset > pulse)
+			pulse = 0;
+		pulse += offset;
+
+		//Fix pulse width
+		if (pulse < min_pulse_width)
+			pulse = min_pulse_width;
+		else if (pulse > max_pulse_width)
+			pulse = max_pulse_width;
+	}
+
+	//5) Set pwm on target servo
+	drivers[board]->setPWM(index, 0, pulse);
 }

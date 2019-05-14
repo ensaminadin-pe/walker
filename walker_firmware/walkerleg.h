@@ -9,11 +9,17 @@ class Walker;
 class WalkerLeg
 {
 	public:
-		WalkerLeg(Walker* _parent, uint8 _index);
+		//V2
+		// - Constructor/destructor
+		WalkerLeg(uint8 _index, uint8 _joint_count);
 		~WalkerLeg();
+		// - Methods
 		void freeJoints();
 		void addJoints(uint8 count);
 		void addJoint();
+		// - Getters
+		// ----------------------------------------
+		//WalkerLeg(Walker* _parent, uint8 _index);
 		int getJointCount() { return joint_count; }
 		WalkerJoint *getJoint(uint8 index);
 	private:
