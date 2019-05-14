@@ -18,6 +18,16 @@
 		usleep(ms * 1000);
 	}
 
+	void tone(uint8 pin, uint16 note, uint16 note_time)
+	{
+
+	}
+
+	void noTone(uint8 pin)
+	{
+
+	}
+
 	Adafruit_PWMServoDriver::Adafruit_PWMServoDriver(TwoWire *I2C, uint8 addr)
 	{
 		#ifdef SHOW_SERVO_DEBUG

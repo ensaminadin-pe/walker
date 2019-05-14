@@ -2,30 +2,30 @@
 #define WALKERJOINT_H
 
 #include "types.h"
-#include "oscillator.h"
-#include "gait.h"
 
 class WalkerJoint
 {
 	public:
-		WalkerJoint(uint8 _leg_index, uint8 _joint_index);
+		WalkerJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance);
 		~WalkerJoint();
-		void reset();
-		void setPeriodModifier(float *modifier);
-		void startOscillator()		{ oscillator.start(); }
-		void stopOscillator()		{ oscillator.stop(); }
-		float refreshOscillator()	{ return oscillator.refresh(); }
-		float getOscillatorOutput()	{ return oscillator.getOutput(); }
-		void setOscillatorTime(unsigned long time) { oscillator.setTime(time); }
-		Oscillator* getOscillator() { return &oscillator; }
-		void updateServoPosition();
-		void setupOscillator(uint16 period, int8 amplitude, int8 offset, uint16 phase);
-		void loadGait(Gait* gait);
+		bool updateServoPosition(unsigned long diff);
+		bool isMovementDone() { return movement_done; }
+		void setTargetPosition(float position) { target_position = position; }
+		void setPosition(float position);
+		void toggle(uint8 toggle = 2);
 	private:
-		uint8 leg_index;		//Leg index of the join
-		uint8 joint_index;		//Joint index on the leg
-		uint8 servo_driver_index;
-		Oscillator oscillator;
+		// - Config properties
+		uint8	driver_board;		//Driver board index
+		uint8	driver_index;		//Index on the driver board
+		uint16	offset;				//Pulse width offset
+		float	distance;			//Distance to next joint or leg tip
+		// - Running properties
+		bool	running;			//Can update position
+		float	current_position;	//Current servo angle
+		float	target_position;	//Target servo angle
+		bool	movement_done;		//Target movement position is reached
+		// - Methods
+		void setServoPosition(float angle);
 };
 
 #endif // WALKERJOINT_H

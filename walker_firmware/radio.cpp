@@ -1,7 +1,6 @@
 #include "radio.h"
 #include "esp8266_watchdog.h"
 #include <stdlib.h>
-#include <Arduino.h>
 
 Radio::Radio()
 {
@@ -189,7 +188,7 @@ void Radio::send(const void *buffer, uint8 size)
 	if (!hasLink())
 	{
 		if (!link(true))
-			return 0; //Could not relink, try next time
+			return; //Could not relink, try next time
 	}
 
 	//3) Send message

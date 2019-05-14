@@ -1,6 +1,5 @@
 #include "mainfunctions.h"
 #include "walker.h"
-#include "gaitdictionarymgr.h"
 #include "radio.h"
 #include "config.h"
 #include <stdio.h>
@@ -12,6 +11,7 @@
 	#include "stdpolyfill.h"
 #endif
 /*
+ ----- V2 -----
 Implement inversed kinematics
 Fuck gaits
 -https://github.com/henriksod/Fabrik2DArduino
@@ -64,6 +64,43 @@ Rewrite movement update
 	when all legs are done, load next positions to reach in each legs and reset done
 	if no new Position, load default Position stance
 	if Movement struct is repetable, reset and load first Position
+
+ ----- V3 -----
+Separate muscle from brain
+	Add raspberry pi as main brainbox that tell arduinos what to do
+	Rewrite most of the program on a raspberry pi in Python
+		- Raspberry pi multithread for :
+			. RF connection to remote							|	Same library as Arduino
+			. global kinematic processing						|	https://github.com/Phylliade/ikpy
+			. attachment inversed kinematics (legs and arm)
+			. camera and sonar sensors : spatial awareness		|	OpenCV, multiple cameras, depth map, seems hard
+		- Standardize kinematics movement
+			. Raspberry will compute the inversed kinematics movements and send servo positions to reach for current movement and next one
+			. This standard movement packet can be applied for main leg movement or potential attachment movement
+			. movement packet schematic
+				4	0x50 0x41 0x43 0x4B		(PACK in hexa)
+				1	10 = servo angles		(Packet type)
+				2	0-65535					(packet size in bytes)
+				1	0-255					(number of chains per movement)
+				1	0-180					(rotation chain0 angle1)
+				1	0-180					(rotation chain0 angle2)
+				1	0-180					(rotation chain0 angle3)
+				1	255						(chain separator)
+				1	0-180					(rotation chain1 angle1)
+				1	0-180					(rotation chain1 angle2)
+				1	0-180					(rotation chain1 angle3)
+				1	0						(chain separator)
+				For current 6-3 configuration, a single packet withcurrent positions and next position will weight 54 bytes.
+				Classic serial port speed is 54kbit/s, or 6.75Kbytes/s or 112bytes/20ms, wich is our main movement update rate.
+				We have a huge margin for communication with this system, movement instruction will be sent every 250/500ms
+				We could send the 4/5 next movements and queue them in the controller.
+			. controller request schematic 5 bytes
+				4	0x50 0x41 0x43 0x4B		(PACK in hexa)
+				1	11 = require next movement
+		- Attachments
+			. leg controller
+			. interaction controller (buzzer, led, LCD screen)
+			. arm/gun controller
 ------------------------------------------------------------------------------------------------
 Unit infos
 	. radio connection status : (red)cannot connect module, (blue)radio off, (orange)connection lost, (green)connection on
@@ -125,66 +162,22 @@ unsigned long diff()
 	return _diff;
 }
 
-void update_movement()
+/// - TODO - MOVE MOVEMENT HANDLING TO ANOTHER FILE
+void handleMovement()
 {
 	unsigned int _movement = 0;
 	if (direction_nunchuck.getJoystickX() > 0)
-		_movement += map_movement_value(MOVEMENT_RIGHT_LOW, direction_nunchuck.getJoystickX());
+		_movement += mapMovementValue(MOVEMENT_RIGHT_LOW, direction_nunchuck.getJoystickX());
 	else
-		_movement += map_movement_value(MOVEMENT_LEFT_LOW, direction_nunchuck.getJoystickX());
+		_movement += mapMovementValue(MOVEMENT_LEFT_LOW, direction_nunchuck.getJoystickX());
 	if (direction_nunchuck.getJoystickY() > 0)
-		_movement += map_movement_value(MOVEMENT_UP_LOW, direction_nunchuck.getJoystickY());
+		_movement += mapMovementValue(MOVEMENT_UP_LOW, direction_nunchuck.getJoystickY());
 	else
-		_movement += map_movement_value(MOVEMENT_DOWN_LOW, direction_nunchuck.getJoystickY());
+		_movement += mapMovementValue(MOVEMENT_DOWN_LOW, direction_nunchuck.getJoystickY());
 	movement = _movement;
 }
 
-void update_gait(unsigned long time_diff)
-{
-	if (gait_update_time > time_diff)
-	{
-		gait_update_time -= time_diff;
-		return;
-	}
-	gait_update_time = 100;
-
-	if (remote_timeout <= time_diff)
-	{ //Lost the remote, go back to idle
-		sWalker->setNextGait(1);
-		return;
-	}
-
-	//Choose the gait to run
-	if (direction_nunchuck.cPressed() && direction_nunchuck.zPressed())
-		sWalker->setNextGait(2);
-	else if (direction_nunchuck.cPressed())
-		sWalker->setNextGait(2110);
-	else if (direction_nunchuck.zPressed())
-	{
-		if (movement & MOVEMENT_UP_HIGH)
-			sWalker->setNextGait(1100);
-		else if (movement & MOVEMENT_LEFT_HIGH)
-			sWalker->setNextGait(1110);
-		else if (movement & MOVEMENT_DOWN_HIGH)
-			sWalker->setNextGait(1101);
-		else if (movement & MOVEMENT_RIGHT_HIGH)
-			sWalker->setNextGait(1111);
-		else
-			sWalker->setNextGait(1);
-	}
-	else if (movement & MOVEMENT_UP_HIGH)
-		sWalker->setNextGait(1100);
-	else if (movement & MOVEMENT_LEFT_HIGH)
-		sWalker->setNextGait(1001);
-	else if (movement & MOVEMENT_DOWN_HIGH)
-		sWalker->setNextGait(1101);
-	else if (movement & MOVEMENT_RIGHT_HIGH)
-		sWalker->setNextGait(1002);
-	else
-		sWalker->setNextGait(1);
-}
-
-unsigned int map_movement_value(unsigned int base, signed short joystick_value)
+unsigned int mapMovementValue(unsigned int base, signed short joystick_value)
 {
 	if (joystick_value < 0)
 		joystick_value *= -1;
@@ -197,6 +190,51 @@ unsigned int map_movement_value(unsigned int base, signed short joystick_value)
 	if (joystick_value >= MOVEMENT_HIGH_THRESHOLD)
 		return base * 4;
 }
+
+void updateMovements(unsigned long time_diff)
+{
+	if (movement_update_time > time_diff)
+	{
+		movement_update_time -= time_diff;
+		return;
+	}
+	movement_update_time = 100;
+
+	if (remote_timeout <= time_diff)
+	{ //Lost the remote, go back to idle
+		return;
+	}
+
+	//Choose the gait to run
+	if (direction_nunchuck.cPressed() && direction_nunchuck.zPressed())
+		;//UNK
+	else if (direction_nunchuck.cPressed())
+		;//UNK
+	else if (direction_nunchuck.zPressed())
+	{
+		if (movement & MOVEMENT_UP_HIGH)
+			;//MOVE FORWARD
+		else if (movement & MOVEMENT_LEFT_HIGH)
+			;//STRAFE LEFT
+		else if (movement & MOVEMENT_DOWN_HIGH)
+			;//MOVE BACK
+		else if (movement & MOVEMENT_RIGHT_HIGH)
+			;//STRAFE RIGHT
+		else
+			;//IDLE
+	}
+	else if (movement & MOVEMENT_UP_HIGH)
+		;//MOVE FORWARD
+	else if (movement & MOVEMENT_LEFT_HIGH)
+		;//TIRN LEFT
+	else if (movement & MOVEMENT_DOWN_HIGH)
+		;//MOVE BACK
+	else if (movement & MOVEMENT_RIGHT_HIGH)
+		;//TURN RIGHT
+	else
+		;//IDLE
+}
+/// - TODO - MOVE MOVEMENT HANDLING TO ANOTHER FILE
 
 void main_setup()
 { //Arduino like setup
@@ -231,12 +269,45 @@ void main_setup()
 	//    for each joint, give the distance from the middle of the joint to the middle of the next joint,
 	//	  for the last joint give the distance to the leg tip
 	//  - This doesnt need to be 0.1mm precise, 0.3/4mm of margin is ok. Ex: round up 25.31 to 25.5
-	///	uint8 leg_index = sWalker->addLeg();
-	/// //Add joints from top to bottom
-	/// WalkerLeg* leg = sWalker->getLeg(leg_index);
-	/// leg->addJoint(0, 0, 0, 25.0f); //Top joint : board 0, board index 0, offset 0, dimention to next 25.0f
-	/// leg->addJoint(0, 1, -2, 41.5f); //Top joint : board 0, board index 1, offset -2, dimention to next 41.5f
-	/// leg->addJoint(0, 2, 5, 89.0f); //Top joint : board 0, board index 2, offset 5, dimention to next 89.0f
+	//  - The setup is a bit tedious, but it allows you to fine tune each joints with an offset and place place
+	//    joint on target board at target pin
+	/// - SETUP OF A 6_3 walker : 6 legs with 3 joint each
+	/// -- LEG 0 - Board 0 indexes 0, 1 & 2
+	WalkerLeg* leg0 = sWalker->addLeg();
+	leg0->addJoint(0, 0, 0, DIMENTION_JOINT1);
+	leg0->addJoint(0, 1, 0, DIMENTION_JOINT2);
+	leg0->addJoint(0, 2, 0, DIMENTION_JOINT3);
+
+	/// -- LEG 1 - Board 0 indexes 3, 4 & 5
+	WalkerLeg* leg1 = sWalker->addLeg();
+	leg1->addJoint(0, 3, 0, DIMENTION_JOINT1);
+	leg1->addJoint(0, 4, 0, DIMENTION_JOINT2);
+	leg1->addJoint(0, 5, 0, DIMENTION_JOINT3);
+
+	/// -- LEG 2 - Board 0 indexes 6, 7 & 8
+	WalkerLeg* leg2 = sWalker->addLeg();
+	leg2->addJoint(0, 6, 0, DIMENTION_JOINT1);
+	leg2->addJoint(0, 7, 0, DIMENTION_JOINT2);
+	leg2->addJoint(0, 8, 0, DIMENTION_JOINT3);
+
+	/// -- LEG 3 - Board 0 indexes 9, 10 & 11
+	WalkerLeg* leg3 = sWalker->addLeg();
+	leg3->addJoint(0, 9, 0, DIMENTION_JOINT1);
+	leg3->addJoint(0, 10, 0, DIMENTION_JOINT2);
+	leg3->addJoint(0, 11, 0, DIMENTION_JOINT3);
+
+	/// -- LEG 4 - Board 0 indexes 12, 13 & 14
+	WalkerLeg* leg4 = sWalker->addLeg();
+	leg4->addJoint(0, 12, 0, DIMENTION_JOINT1);
+	leg4->addJoint(0, 13, 0, DIMENTION_JOINT2);
+	leg4->addJoint(0, 14, 0, DIMENTION_JOINT3);
+
+	/// -- LEG 5 - Board 0 index 15 & board 1 indexes 0 & 1
+	WalkerLeg* leg5 = sWalker->addLeg();
+	leg5->addJoint(0, 15, 0, DIMENTION_JOINT1);
+	leg5->addJoint(1, 0, 0, DIMENTION_JOINT2);
+	leg5->addJoint(1, 1, 0, DIMENTION_JOINT3);
+
 	// --------------------------------------------------------------------------------------------
 	//4) Load default position
 	// - https://github.com/henriksod/Fabrik2DArduino
@@ -245,11 +316,10 @@ void main_setup()
 	// --------------------------------------------------------------------------------------------
 	//5) Test legs, bip or do some shit to show that the walker is ok
 	// - https://github.com/AnonymousAlly/Arduino-Music-Codes
-	/// for (uint8 i = 0; i < sWalker->getLegCount(); i++)
-	/// {
-	///		sWalker->getLeg(i)->test(); //Test move
-	///		delay(200);
-	/// }
+	for (uint8 i = 0; i < sWalker->getLegCount(); i++)
+	{
+		sWalker->getLeg(i)->test(); //Test move
+	}
 }
 
 void main_loop()
@@ -267,13 +337,13 @@ void main_loop()
 	if (radio_packet && direction_nunchuck.handlePacket((WiiNunchuckPacket*)radio_packet))
 	{ // Has a radio update & packet was correct
 		direction_nunchuck.print();
-		update_movement();
+		handleMovement();
 		//movement = 4;
 		remote_timeout = 2000;
 	}
 
 	//3) Update gaits with remote infos
-	update_gait(diff());
+	updateMovements(diff());
 
 	//4) Run walker update loop
 	sWalker->update(diff());

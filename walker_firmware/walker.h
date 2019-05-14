@@ -3,19 +3,8 @@
 
 #include "walkerleg.h"
 #include "walkerjoint.h"
-#include "oscillator.h"
 #include "types.h"
-#include "gait.h"
 #include "servodriver.h"
-
-#define GAIT_POSITION_TO_FILE
-
-#ifdef IS_QT
-	#ifdef GAIT_POSITION_TO_FILE
-		#define OUTPUT_POSITION_TO_FILE
-		#include <stdio.h>
-	#endif
-#endif
 
 class Walker
 {
@@ -26,45 +15,25 @@ class Walker
 		//Methods
 		// - Getters
 		static Walker* instance();
-		uint8	getLegCount()	{ return leg_count; }
-		uint8	getJointCount()	{ return joint_count; }
-		uint16	getTotalCount()	{ return leg_count * joint_count; }
+		uint8	getLegCount()			{ return leg_count; }
 		// - Walker setup
-		void setup(uint8 leg_count, uint8 joint_count);
+		WalkerLeg* addLeg();
 		void addLegs(uint8 count);
-		void addLeg();
-		void addJoints(uint8 count);
-		void init();
+		WalkerLeg* getLeg(uint8 index);
 		// - Speed
-		void setGaitSpeed(float speed);
-		float* getPeriodModifier() { return &speed_multiplier; }
-		float increaseGaitSpeed();
-		float decreaseGaitSpeed();
+		/// - TODO - SPEED MODIFIER
 		// - Main
-		void update(unsigned int diff);
-		void setNextGait(uint16 gait_id);
-		// - Debug
-		void print();
+		void update(unsigned long diff);
+		/// - TODO - FUNCTION TO SET NEXT MOVEMENT
 	private:
 		//Properties
-		WalkerLeg**		legs;			//Walker legs
-		Gait*			gait;			//Active gait configuration
-		uint16			next_gait_id;	//Next gait
-		#ifdef OUTPUT_POSITION_TO_FILE
-			FILE*		outputFile;
-		#endif
-
-		float			speed_multiplier;	//Oscillator period modifier
+		WalkerLeg**		legs;				//Walker legs
 		uint8			leg_count;			//Number of legs
-		uint8			joint_count;		//Number of joints (servos)
-
-		int16			update_timer;		//Oscillators & Servos update timer
+		int16			update_timer;		//Main update timer
+		float			speed_multiplier;	/// - WIP - Movement speed modifier
 		//Methods
-		void freeLegs();
 		void reset();
-		void updateServoPositions();
-		void clearGait();
-		void loadNextGait();
+		void freeLegs();
 };
 
 #define sWalker Walker::instance()

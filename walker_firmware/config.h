@@ -1,10 +1,17 @@
 #ifndef CONFIG
 #define CONFIG
 
+// Walker distances between joints
+#define DIMENTION_JOINT1 25.0f
+#define DIMENTION_JOINT2 41.5f
+#define DIMENTION_JOINT3 89.0f
+
 // System
 #define DEBUG_ON			//Uncomment this to see debug in the serial monitor
 #define BAUD_RATE		9600//9600 bps
-#define UPDATE_SPEED	20	//20ms = 60Hz
+#define UPDATE_SPEED	20	//Movement update speed, servos will be moved every 20ms (60Hz)
+// Beeper
+#define BEEPER_PIN		9
 // Walker
 #define MIN_GAIT_SPEED	0.5f
 #define MAX_GAIT_SPEED	1.5f

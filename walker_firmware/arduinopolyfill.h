@@ -10,6 +10,8 @@
 
 	unsigned long	millis();
 	void			delay(int ms);
+	void			tone(uint8 pin, uint16 note, uint16 note_time);
+	void			noTone(uint8 pin);
 
 	class TwoWire
 	{

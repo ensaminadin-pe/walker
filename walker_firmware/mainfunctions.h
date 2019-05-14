@@ -27,17 +27,17 @@
 #define MOVEMENT_HIGH_THRESHOLD	80
 
 static unsigned long	update_time;
-static unsigned long	gait_update_time;
+static unsigned long	movement_update_time;
 static unsigned long	remote_timeout;
 static unsigned int		movement;
 static WiiNunchuck		direction_nunchuck;
 
 void	main_setup();
 void	main_loop();
-void	update_movement();
-void	update_gait(unsigned long time_diff);
+void	handleMovement();
+void	updateMovements(unsigned long time_diff);
 
 unsigned long	diff();
-unsigned int	map_movement_value(unsigned int base, signed short joystick_value);
+unsigned int	mapMovementValue(unsigned int base, signed short joystick_value);
 
 #endif // MAINFUNCTIONS_H

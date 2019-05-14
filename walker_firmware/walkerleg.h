@@ -9,25 +9,26 @@ class Walker;
 class WalkerLeg
 {
 	public:
-		//V2
 		// - Constructor/destructor
-		WalkerLeg(uint8 _index, uint8 _joint_count);
+		WalkerLeg();
 		~WalkerLeg();
 		// - Methods
-		void freeJoints();
-		void addJoints(uint8 count);
-		void addJoint();
+		WalkerJoint* addJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance);
+		void updateJoints(unsigned long diff);
+		void homeJoints();	//Move every joints to 0°
+		void test();		//Test leg, move each joints and beep
+		/// - TODO - LOAD/GET MOVEMENT POSITIONS
 		// - Getters
 		// ----------------------------------------
 		//WalkerLeg(Walker* _parent, uint8 _index);
 		int getJointCount() { return joint_count; }
 		WalkerJoint *getJoint(uint8 index);
 	private:
-		//Properties
-		Walker* parent;
-		uint8 index;
+		// - Properties
 		uint8 joint_count;
 		WalkerJoint** joints; //Top to bottom
+		// - Methods
+		void freeJoints();
 };
 
 #endif // WALKERLEG_H

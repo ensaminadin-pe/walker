@@ -6,8 +6,8 @@
 
 ServoDriver::ServoDriver()
 {
-	drivers = 0;
-	pulse_table = 0;
+	drivers = NULL;
+	pulse_table = NULL;
 }
 
 ServoDriver::~ServoDriver()
@@ -144,7 +144,7 @@ void ServoDriver::setupAngleRange(float min, float max)
  * @param index
  * @param angle
  */
-void ServoDriver::setServo(uint8 board, uint8 index, float angle, int16 offset)
+void ServoDriver::setServo(uint8 board, uint8 index, float angle, uint16 offset)
 {
 	//1) Check datas
 	if (!drivers || board > (driver_count - 1) || !drivers[board] || index > 15)

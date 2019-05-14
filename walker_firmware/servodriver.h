@@ -31,7 +31,7 @@ class ServoDriver
 
 		//Methods
 		// - Set servo X of board Y at angle Z
-		void setServo(uint8 board, uint8 index, float angle, int16 offset = 0);
+		void setServo(uint8 board, uint8 index, float angle, uint16 offset = 0);
 		// - Getters
 		uint16	getDriverFrequency()	{ return driver_frequency; }
 		uint8	getDriverCount()		{ return driver_count; }
