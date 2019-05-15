@@ -153,8 +153,6 @@ Hardware updgrade
 ///		1.2) Radio receiver
 ///			Later
 
-//static uint32 update_time;
-
 unsigned long diff()
 {
 	unsigned long _diff = millis() - update_time;
@@ -319,9 +317,7 @@ void main_setup()
 	//5) Test legs, bip or do some shit to show that the walker is ok
 	// - https://github.com/AnonymousAlly/Arduino-Music-Codes
 	for (uint8 i = 0; i < sWalker->getLegCount(); i++)
-	{
 		sWalker->getLeg(i)->test(); //Test move
-	}
 }
 
 void main_loop()

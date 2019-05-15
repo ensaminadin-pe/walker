@@ -3,6 +3,7 @@
 
 #include "walkerjoint.h"
 #include "types.h"
+#include "fabrik2d.h"
 
 class Walker;
 
@@ -20,15 +21,16 @@ class WalkerLeg
 		/// - TODO - LOAD/GET MOVEMENT POSITIONS
 		// - Getters
 		// ----------------------------------------
-		//WalkerLeg(Walker* _parent, uint8 _index);
 		int getJointCount() { return joint_count; }
 		WalkerJoint *getJoint(uint8 index);
 	private:
 		// - Properties
-		uint8 joint_count;
-		WalkerJoint** joints; //Top to bottom
+		uint8			joint_count;
+		WalkerJoint**	joints;			//Top to bottom
+		Fabrik2D		kinematics[3];	//0 = X, 1 = Y, 2 = Z
 		// - Methods
 		void freeJoints();
+		Fabrik2D* getKinematic(KinematicAxis axis);
 };
 
 #endif // WALKERLEG_H
