@@ -13,7 +13,7 @@ class WalkerLeg
 		WalkerLeg();
 		~WalkerLeg();
 		// - Methods
-		WalkerJoint* addJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance);
+		WalkerJoint* addJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance, KinematicAxis _rotation_axis, float _angle);
 		void updateJoints(unsigned long diff);
 		void homeJoints();	//Move every joints to 0°
 		void test();		//Test leg, move each joints and beep
