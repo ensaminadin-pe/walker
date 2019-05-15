@@ -36,19 +36,20 @@ WalkerJoint* WalkerLeg::addJoint(uint8 _driver_board, uint8 _driver_index, uint1
 {
 	//1) Crate new joint
 	WalkerJoint* joint = new WalkerJoint(_driver_board, _driver_index, _offset, _distance, _rotation_axis, _angle);
-	joint_count++;
+	if (!joint)
+		return NULL;
+	joint_count ++;
 
 	//2) Resize joint storage
-	WalkerJoint** _joints = (WalkerJoint**)realloc(joints, joint_count * sizeof(WalkerJoint*));
-	if (!_joints)
+	joints = (WalkerJoint**)realloc(joints, joint_count * sizeof(WalkerJoint*));
+	if (!joints)
 	{
 		delete(joint);
 		return NULL;
 	}
 
 	//3) Store new joint
-	_joints[joint_count - 1] = joint;
-	joints = _joints;
+	joints[joint_count - 1] = joint;
 
 	//4) Add joint to leg kinematic
 	Fabrik2D* kinematic = getKinematic(joint->getAxis());
@@ -132,5 +133,5 @@ Fabrik2D* WalkerLeg::getKinematic(KinematicAxis axis)
 {
 	if (axis == KINEMATIC_AXIS_UNDEFINED)
 		return NULL;
-	return &kinematics[(uint8)axis + 1];
+	return &kinematics[(uint8)axis - 1];
 }

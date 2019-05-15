@@ -69,8 +69,8 @@ bool Fabrik2D::addJoint(WalkerJoint *joint)
 	joints_axis = joint->getAxis();
 
 	//3) Resize joint chain
-	uint8 joint_index = joint_count - 1;
-	joint_chain = (WalkerJoint**)realloc(joint_chain, ++joint_count * sizeof(WalkerJoint*));
+	uint8 joint_index = joint_count++ - 1;
+	joint_chain = (WalkerJoint**)realloc(joint_chain, joint_count * sizeof(WalkerJoint*));
 	if (!joint_chain)
 		return false;
 
