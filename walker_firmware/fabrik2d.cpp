@@ -26,444 +26,246 @@
 	#include <math.h>
 #endif
 #include "fabrik2d.h"
+#include "kinematic.h"
 #include <stdlib.h>
 
-/* Fabrik2D(numJoints, lengths)
- * inputs: numJoints, lengths
- *
- * creates the chain to be used for the inverse kinematics solver
- */
-Fabrik2D::Fabrik2D(int numJoints, int* lengths)
+Fabrik2D::Fabrik2D(float _tolerance)
 {
-	this->numJoints = numJoints;
-	this->tolerance = 1; // 1mm tolerance default
-	createChain(lengths);
+	tolerance = _tolerance; //1mm
+	joint_count = 0;
+	chain_length = 0;
+	joint_chain = NULL;
+	joints_axis = KINEMATIC_AXIS_UNDEFINED;
 }
 
-/* createChain(lengths)
- * inputs: lengths
- *
- * length size should always be one lesser than the number of joints
- */
-void Fabrik2D::createChain(int* lengths)
+Fabrik2D::~Fabrik2D()
 {
 
-	Chain* chain = (Chain*)malloc(sizeof(Chain));
-	chain->joints = (Joint*)malloc(sizeof(Joint)*this->numJoints);
-
-	chain->joints[0].x = 0;
-	chain->joints[0].y = 0;
-	chain->joints[0].angle = 0;
-
-	int sumLengths = 0;
-	for (int i = 1; i < this->numJoints; i++)
-	{
-		sumLengths = sumLengths + lengths[i-1];
-		chain->joints[i].x = 0;
-		chain->joints[i].y = sumLengths;
-		chain->joints[i].angle = 0;
-	}
-
-	this->chain = chain;
 }
 
-/* solve(x, y, lengths)
- * inputs: x and y positions of target, lengths between each joint
- *
- * solves the inverse kinematics of the stored chain to reach the target
+/**
+ * @brief Fabrik2D::addJoint Add a joint to the kinematic chain
+ * @param joint
+ * @return
  */
-bool Fabrik2D::solve(float x, float y, int* lengths)
+bool Fabrik2D::addJoint(WalkerJoint *joint)
 {
-
-	// Distance between root and target (root is always 0,0)
-	int dist = sqrt(x*x+y*y);
-
-	// Total length of chain
-	int totalLength = 0;
-	for (int i = 0; i < this->numJoints-1; i++)
-	{
-		totalLength = totalLength + lengths[i];
+	//1) Check that the chain exist
+	if (!joint_chain)
+	{ //Create chain and last point
+		joint_chain = (WalkerJoint**)malloc(sizeof(WalkerJoint*));
+		if (!joint_chain) // Could not allocate memory, error
+			return false;
+		WalkerJoint* last_joint = new WalkerJoint();
+		if (!last_joint)
+			return false;
+		joint_chain[0] = last_joint;
+		joint_count = 1;
 	}
 
+	//2) Check that joint can be added
+	if (joints_axis != KINEMATIC_AXIS_UNDEFINED && joint->getAxis() != joints_axis)
+		return false; //Cannot add a joint that doesnt rotate on the same axis as the others, this is 2D Fabrik
+	joints_axis = joint->getAxis();
 
-	// Check whether the target is within reach
-	if (dist > totalLength)
+	//3) Resize joint chain
+	uint8 joint_index = joint_count - 1;
+	joint_chain = (WalkerJoint**)realloc(joint_chain, ++joint_count * sizeof(WalkerJoint*));
+	if (!joint_chain)
+		return false;
+
+	//4) Store new joint in chain at correct spot
+	joint_chain[joint_count - 1] = joint_chain[joint_index]; //Last joint is currently at the new joint position, move it
+	joint_chain[joint_index] = joint; //Set new joint at its correct position : one before last
+
+	//5) Rebuild joint position for new joint and last joint
+	//4.1) Get previous joint if any
+	if (joint_index > 0) //Origin is at 0;0, no need to check it
 	{
-	   // The target is unreachable
-
-	   for (int i = 0; i < this->numJoints-1; i++)
-	   {
-		   // Find the distance r_i between the target (x,y) and the joint i position (jx,jy)
-		   float jx = this->chain->joints[i].x;
-		   float jy = this->chain->joints[i].y;
-		   float r_i = distance(jx,jy,x,y); // abs(x-jx) + abs(y-jy)
-		   float lambda_i = ((float)lengths[i])/r_i;
-
-		   // Find the new joint positions
-		   this->chain->joints[i+1].x = (float)((1-lambda_i)*jx + lambda_i*x);
-		   this->chain->joints[i+1].y = (float)((1-lambda_i)*jy + lambda_i*y);
-	   }
-
-	   return false;
-	}
-	else
-	{
-		// The target is reachable; this, set as (bx,by) the initial position of the joint i
-		float bx = this->chain->joints[0].x;
-		float by = this->chain->joints[0].y;
-
-		// Check whether the distance between the end effector joint n (ex,ey) and the target is
-		// greater than a tolerance
-		float ex = this->chain->joints[this->numJoints-1].x;
-		float ey = this->chain->joints[this->numJoints-1].y;
-		float dif = distance(ex,ey,x,y);
-
-		float prevDif = 0;
-		float tolerance = this->tolerance;
-		while (dif > tolerance)
-		{
-
-			if (prevDif == dif)
-				tolerance *= 2;
-
-			prevDif = dif;
-
-			// STAGE 1: FORWARD REACHING
-			// Set the end effector as target
-			this->chain->joints[this->numJoints-1].x = x;
-			this->chain->joints[this->numJoints-1].y = y;
-
-			for (int i = this->numJoints-2; i >= 0; i--)
-			{
-
-				// Find the distance r_i between the new joint position i+1 (nx,ny)
-				// and the joint i (jx,jy)
-				float jx = this->chain->joints[i].x;
-				float jy = this->chain->joints[i].y;
-				float nx = this->chain->joints[i+1].x;
-				float ny = this->chain->joints[i+1].y;
-				float r_i = distance(jx,jy,nx,ny);
-				float lambda_i = ((float)lengths[i])/r_i;
-
-				// Find the new joint positions
-				this->chain->joints[i].x = (float)((1-lambda_i)*nx + lambda_i*jx);
-				this->chain->joints[i].y = (float)((1-lambda_i)*ny + lambda_i*jy);
-			}
-
-			// STAGE 2: BACKWARD REACHING
-			// Set the root at its initial position
-			this->chain->joints[0].x = bx;
-			this->chain->joints[0].y = by;
-
-			for (int i = 0; i < this->numJoints-1; i++)
-			{
-
-				// Find the distance r_i between the new joint position i (nx,ny)
-				// and the joint i+1 (jx,jy)
-				float jx = this->chain->joints[i+1].x;
-				float jy = this->chain->joints[i+1].y;
-				float nx = this->chain->joints[i].x;
-				float ny = this->chain->joints[i].y;
-				float r_i = distance(jx,jy,nx,ny);
-				float lambda_i = ((float)lengths[i])/r_i;
-
-				// Find the new joint positions
-				this->chain->joints[i+1].x = (float)((1-lambda_i)*nx + lambda_i*jx);
-				this->chain->joints[i+1].y = (float)((1-lambda_i)*ny + lambda_i*jy);
-			}
-
-			// Update distance between end effector and target
-			ex = this->chain->joints[this->numJoints-1].x;
-			ey = this->chain->joints[this->numJoints-1].y;
-			dif = distance(ex,ey,x,y);
-		}
+		placeNextJoint(joint_chain[joint_index - 1], joint); //Update positon x;y of our new joint
+		placeNextJoint(joint_chain[joint_index], joint_chain[joint_index + 1]); //Update positon x;y of last joint
 	}
 
-
-	this->chain->joints[0].angle = atan2(this->chain->joints[1].y,this->chain->joints[1].x);
-
-	float prevAngle = this->chain->joints[0].angle;
-	for (int i = 2; i <= this->numJoints-1; i++)
-	{
-		float ax = this->chain->joints[i-1].x;
-		float ay = this->chain->joints[i-1].y;
-		float bx = this->chain->joints[i].x;
-		float by = this->chain->joints[i].y;
-
-		float aAngle = atan2(by-ay,bx-ax);
-
-		this->chain->joints[i-1].angle = aAngle-prevAngle;
-
-		prevAngle = aAngle;
-	}
+	//6) Increase chain lenght
+	chain_length += joint->getKinematicDistance();
 
 	return true;
 }
 
-/* solve2(x, y, z, angle, offset, lengths)
- * inputs: x, y and z positions of target, desired tool angle, gripping offset and lengths between each joint
- * outputs: True if solvable, false if not solvable
- *
- * !!! tool angle is in radians !!!
- *
- * solves the inverse kinematics of the stored chain to reach the target with tool angle and gripping offset
- * introducing the z-axis, which allows a rotational base of the manipulator
- *
- * angle of the chain defines the base rotation
- *
- * the x- and y-axes define the plane and the z-axis defines the offset from the plane
- *
- * will only work for 4DOF, i.e. 4 joints or more and a rotational base
+/**
+ * @brief Fabrik2D::getJoint Get loaded joint at target index
+ * @param joint_index
+ * @return
  */
-bool Fabrik2D::solve2(float x, float y, float z, float toolAngle, float grippingOffset, int* lengths)
+WalkerJoint *Fabrik2D::getJoint(uint8 joint_index)
 {
-	if (this->numJoints >= 4) {
+	if (!joint_chain || joint_index < joint_count - 1 || !joint_chain[joint_count])
+		return NULL;
+	return joint_chain[joint_count];
+}
 
-		// Find wrist center by moving from the desired position with tool angle and link length
-		float oc_x = x - (lengths[this->numJoints-2]+grippingOffset)*cos(toolAngle);
-		float oc_y = y - (lengths[this->numJoints-2]+grippingOffset)*sin(toolAngle);
+/**
+ * @brief Fabrik2D::reachFor Main resolution function
+ * @param target_x
+ * @param target_y
+ * @return
+ */
+bool Fabrik2D::reachFor(float target_x, float target_y)
+{
+	///The basics of FABRIK
+	/// http://www.andreasaristidou.com/publications/papers/FABRIK.pdf
+	///  1) Check that the target point iw reachable by checking the full length of the chain
+	///		If not, our program will move every joint points on a straight line toward the target
+	///  2) If the distance can be reached, we need to recalculate the point positions of each joints on the 2D plane
+	///     This is done in two stages :
+	///		2.1) Backward search
+	///			Start by moving the last point (n) of the chain on the target point itself.
+	///			Then we need to find a line that passes threw n and n-1, and move n-1 on that line
+	///			to the predefined joint distance in n-1, this will be the new positions of n-1.
+	///			We repeat this process between n-1 and n-2, and so on until we reach the first point.
+	///			But at this point, the first point of the chain is not at the origin anymore, so we need stage 2.
+	///		2.2) Forward search
+	///			Now we do exactly the same thing as before, but forward
+	///			Move the first point of the chain (n) to the origin (0, 0).
+	///			move n+1 on a line between n and n+1 to match the predefined distance between n and n+1.
+	///			Do that for every points on your chain.
+	///			Now our endpoint should be very close of the target point, but maybe a little bit too off,
+	///			we can repeat the whole procedure to put it even closer, but reaching the point exactly might
+	///			be a little bit too hard for the program, so add a little tolerance.
+	///  3) Now you have a series of points on a 2d plane, you can calculate the angles between
+	///     the differents vectors, giving you the angles of the joints
+	if (joint_count < 2) //Nothing to do with that
+		return false;
 
-		// We solve IK from first joint to wrist center
-		int tmp = this->numJoints;
-		this->numJoints = this->numJoints-1;
-
-		bool solvable = solve(oc_x, oc_y, lengths);
-
-		this->numJoints = tmp;
-
-		if (solvable == true) {
-
-			// Update the end effector position to preserve tool angle
-			this->chain->joints[this->numJoints-1].x =
-				this->chain->joints[this->numJoints-2].x + lengths[this->numJoints-2]*cos(toolAngle);
-			this->chain->joints[this->numJoints-1].y =
-				this->chain->joints[this->numJoints-2].y + lengths[this->numJoints-2]*sin(toolAngle);
-
-			// Update angle of last joint
-			this->chain->joints[0].angle = atan2(this->chain->joints[1].y,this->chain->joints[1].x);
-
-			float prevAngle = this->chain->joints[0].angle;
-			for (int i = 2; i <= this->numJoints-1; i++)
-			{
-				float ax = this->chain->joints[i-1].x;
-				float ay = this->chain->joints[i-1].y;
-				float bx = this->chain->joints[i].x;
-				float by = this->chain->joints[i].y;
-
-				float aAngle = atan2(by-ay,bx-ax);
-
-				this->chain->joints[i-1].angle = aAngle-prevAngle;
-
-				prevAngle = aAngle;
-			}
-
-			// Save tool angle
-			this->chain->joints[this->numJoints-1].angle = toolAngle;
-
-			// Save base angle (if z different from zero)
-			if (z != 0) {
-				this->chain->z = z;
-				this->chain->angle = atan2(z,x);
-			}
-
-		}
-
+	//1) Check whether the target is within reach
+	if (chain_length < get2dDistance(0, 0, target_x, target_y))
+	{ // The target is unreachable, move every joint position in a straight line towards it
+		for (uint8 i = 0; i < joint_count - 2; i++)
+			relocateJoint(joint_chain[i], target_x, target_y, joint_chain[i]->getKinematicDistance());
+	   return false;
 	}
+
+	//2) Target is reachable
+	for (uint8 iteration = 0; iteration < 10; iteration++)
+	{ //Execute the algorithm a maximum of 10 times
+		//2.1) Stage 1 : Backward search - move points from last to first
+		// - Move last point on the target point
+		joint_chain[joint_count - 1]->setKinematicPosition(target_x, target_y);
+		// - Update every joints, starting from the one before last
+		// - Relocate each joints to a point between their current location and their next joint location
+		for (int i = joint_count - 2; i >= 0; i--)
+			relocateJoint(joint_chain[i], joint_chain[i + 1]->getPlaneX(), joint_chain[i + 1]->getPlaneY(), joint_chain[i]->getKinematicDistance());
+
+		//2.2) Stage 2 : Forward search - move points from first to last
+		// - Move first point to the origin point
+		joint_chain[0]->setKinematicPosition(0.0f, 0.0f);
+		// - Update every joints, starting from the second
+		// - Relocate each joints to a point between their current location and their previous joint location
+		for (int i = 1; i < joint_count; i++)
+			relocateJoint(joint_chain[i], joint_chain[i - 1]->getPlaneX(), joint_chain[i - 1]->getPlaneY(), joint_chain[i - 1]->getKinematicDistance());
+
+		//2.3) Check distance between last point and target point
+		if (get2dDistance(joint_chain[joint_count - 1]->getPlaneX(), joint_chain[joint_count - 1]->getPlaneY(), target_x, target_y) <= tolerance)
+			break; //Last point is withing tolerable range of the target point, stop looking
+		else
+			tolerance += (tolerance / 4); //Not close enought, increase tolerance a little
+	}
+
+	//3) Update joint angles in the chains
+	updateJointAngles();
+
+	return true;
 }
 
-/* solve(x, y, angle, lengths)
- * inputs: x and y positions of target, desired tool angle and lengths between each joint
- * outputs: True if solvable, false if not solvable
- *
- * !!! tool angle is in radians !!!
- *
- * solves the inverse kinematics of the stored chain to reach the target with tool angle
- *
- * will only work for 3DOF
+/**
+ * @brief Fabrik2D::setTolerance Change the tolerance
+ * @param _tolerance
  */
-bool Fabrik2D::solve(float x, float y, float toolAngle, int* lengths)
+void Fabrik2D::setTolerance(float _tolerance)
 {
-	return solve2(x, y, 0, toolAngle, 0, lengths);
+	if (_tolerance < 0.0f)
+		_tolerance = 0.0f; //Not very tolerant of you
+	tolerance = _tolerance;
 }
 
-/* solve(x, y, angle, offset, lengths)
- * inputs: x and y positions of target, desired tool angle and lengths between each joint
- * outputs: True if solvable, false if not solvable
- *
- * !!! tool angle is in radians !!!
- *
- * solves the inverse kinematics of the stored chain to reach the target with tool angle
- * and gripping offset
- *
- * will only work for 3DOF
+/**
+ * @brief Fabrik2D::updateJointAngles Update target angles in joints using current chain coordinates
  */
-bool Fabrik2D::solve(float x, float y, float toolAngle, float grippingOffset, int* lengths)
+void Fabrik2D::updateJointAngles()
 {
-	return solve2(x, y, 0, toolAngle, grippingOffset, lengths);
-}
+	if (joint_count < 2)
+		return;
 
-/* solve2(x, y, z, lengths)
- * inputs: x, y and z positions of target, desired tool angle and lengths between each joint
- * outputs: True if solvable, false if not solvable
- *
- * !!! tool angle is in radians !!!
- *
- * solves the inverse kinematics of the stored chain to reach the target
- * introducing the z-axis, which allows a rotational base of the manipulator
- *
- * angle of the chain defines the base rotation
- *
- * the x- and y-axes define the plane and the z-axis defines the offset from the plane
- *
- * will only work for 4DOF, i.e. 4 joints or more and a rotational base
- */
-bool Fabrik2D::solve2(float x, float y, float z, int* lengths)
-{
-	float r = distance(0, 0, x, z);
+	//1) Update first joint angle
+	float found_angle = atan2(joint_chain[1]->getPlaneX(), joint_chain[1]->getPlaneY());
+	joint_chain[0]->setComputedAngle(found_angle);
 
-	bool solvable =  solve(r, z, lengths);
-	if (solvable == true)
+	//2) Update every other joint angles, starting with the second joint and skipping the last tip placeholder joint
+	for (uint8 i = 1; i < joint_count - 1; i++)
 	{
-		this->chain->z = z;
-		this->chain->angle = atan2(z,x);
+		found_angle = atan2(
+			joint_chain[i + 1]->getPlaneY() - joint_chain[i]->getPlaneY(),
+			joint_chain[i + 1]->getPlaneX() - joint_chain[i]->getPlaneX()
+		) - found_angle;
+		joint_chain[i]->setComputedAngle(found_angle);
 	}
-
-	return solvable;
 }
 
-/* solve(x, y, z, toolAngle, lengths)
- * inputs: x, y and z positions of target, desired tool angle and lengths between each joint
- * outputs: True if solvable, false if not solvable
- *
- * !!! tool angle is in radians !!!
- *
- * solves the inverse kinematics of the stored chain to reach the target with tool angle
- * introducing the z-axis, which allows a rotational base of the manipulator
- *
- * angle of the chain defines the base rotation
- *
- * the x- and y-axes define the plane and the z-axis defines the offset from the plane
- *
- * will only work for 4DOF, i.e. 4 joints or more and a rotational base
+/**
+ * @brief Fabrik2D::clearChain Cleanup our chain in memory
  */
-bool Fabrik2D::solve2(float x, float y, float z, float toolAngle, int* lengths)
+void Fabrik2D::clearChain()
 {
-	return solve2(x, y, z, toolAngle, 0, lengths);
+	if (!joint_chain)
+		return;
+
+	//Just free the chain, the joints are freed elsewhere
+	free(joint_chain);
+	joint_chain = NULL;
 }
 
-/* getX(joint)
- * inputs: joint number
- * outputs: x position of joint
+/**
+ * @brief Fabrik2D::get2dDistance Get distance between two points
+ * @param x1
+ * @param y1
+ * @param x2
+ * @param y2
+ * @return
  */
-float Fabrik2D::getX(int joint)
+float Fabrik2D::get2dDistance(float x1, float y1, float x2, float y2)
 {
-  if (joint >= 0 && joint < numJoints) {
-
-	  return this->chain->joints[joint].x;
-
-  }
-  return 0;
+	float x_diff = x2 - x1;
+	float y_diff = y2 - y1;
+	return sqrt((x_diff * x_diff) + (y_diff * y_diff));
 }
 
-/* getY(joint)
- * inputs: joint number
- * outputs: y position of joint
+/**
+ * @brief Fabrik2D::placeNextJoint Set default position of target joint from source joint using predefined distance and source position
+ * @param source
+ * @param target
  */
-float Fabrik2D::getY(int joint)
+void Fabrik2D::placeNextJoint(WalkerJoint *source, WalkerJoint *target)
 {
-  if (joint >= 0 && joint < numJoints) {
-
-	  return this->chain->joints[joint].y;
-
-  }
-  return 0;
+	target->setPlaneX(source->getKinematicDistance() * cos(source->getBaseAngle()));
+	target->setPlaneY(source->getKinematicDistance() * sin(source->getBaseAngle()));
 }
 
-/* getAngle(joint)
- * inputs: joint number
- * outputs: angle (radians) of joint
+/**
+ * @brief Fabrik2D::replaceJoint Move given joint position from its current position to the given distance on a line between its current position and the gien x/y coordinates
+ * @param joint
+ * @param target_x
+ * @param target_y
+ * @param distance
  */
-float Fabrik2D::getAngle(int joint)
+void Fabrik2D::relocateJoint(WalkerJoint *joint, float target_x, float target_y, float distance)
 {
-  if (joint >= 0 && joint < numJoints) {
+	//1) Get distance between joint and point
+	float current_distance = get2dDistance(joint->getPlaneX(), joint->getPlaneY(), target_x, target_y);
 
-	  return this->chain->joints[joint].angle;
+	//2) Get distance ration between current distance and required new distance
+	float distance_ratio = distance / current_distance;
 
-  }
-  return 0;
-}
-
-/* getZ()
- * outputs: z offset of the chain from the plane
- */
-float Fabrik2D::getZ()
-{
-	return this->chain->z;
-}
-
-/* getBaseAngle()
- * outputs: base angle (radians) of chain
- */
-float Fabrik2D::getBaseAngle()
-{
-	return this->chain->angle;
-}
-
-/* setBaseAngle()
- * inputs: base angle (radians) of chain to set
- */
-void Fabrik2D::setBaseAngle(float baseAngle)
-{
-	this->chain->angle = baseAngle;
-}
-
-/* setTolerance(tolerance)
- * inputs: tolerance value
- *
- * sets the tolerance of the distance between the end effector and the target
- */
-void Fabrik2D::setTolerance(float tolerance)
-{
-	this->tolerance = tolerance;
-}
-
-/* distance(x1,y1,x2,y2)
- * inputs: coordinates
- * outputs: distance between points
- *
- * Uses euclidean distance
- */
-float Fabrik2D::distance(float x1, float y1, float x2, float y2)
-{
-	float xDiff = x2-x1;
-	float yDiff = y2-y1;
-	return sqrt(xDiff*xDiff + yDiff*yDiff);
-}
-
-/* setJoints(angles, lengths)
- * inputs: New joint angles (in radians) and list of lengths between each joint
- *
- * manually sets the joint angles and updates their position using forward kinematics
- */
-void Fabrik2D::setJoints(int* angles, int* lengths)
-{
-	int angListLen = sizeof(angles)/sizeof(int);
-	int lenListLen = sizeof(lengths)/sizeof(int);
-	if (angListLen == numJoints && lenListLen == numJoints-1)
-	{
-	   int accAng = angles[0];
-	   int accX = 0;
-	   int accY = 0;
-	   this->chain->joints[0].angle = angles[0];
-
-	   for (int i = 1; i < this->numJoints; i++)
-	   {
-		   accAng += angles[i];
-		   this->chain->joints[i].x = accX + lengths[i-1]*cos(accAng);
-		   this->chain->joints[i].y = accY + lengths[i-1]*sin(accAng);
-		   this->chain->joints[i].angle = angles[i];
-		   accX = this->chain->joints[i].x;
-		   accY = this->chain->joints[i].y;
-	   }
-	}
+	//3) Use the ratio to relocate joint point
+	joint->setPlaneX(((1.0f - distance_ratio) * joint->getPlaneX()) + (distance_ratio * target_x));
+	joint->setPlaneY(((1.0f - distance_ratio) * joint->getPlaneY()) + (distance_ratio * target_y));
 }

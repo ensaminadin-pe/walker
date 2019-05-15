@@ -1,4 +1,5 @@
 #include "mainfunctions.h"
+#include "kinematic.h"
 #include "walker.h"
 #include "radio.h"
 #include "config.h"
@@ -171,8 +172,6 @@ Hardware updgrade
 ///		1.2) Radio receiver
 ///			Later
 
-//static uint32 update_time;
-
 unsigned long diff()
 {
 	unsigned long _diff = millis() - update_time;
@@ -273,12 +272,13 @@ void main_setup()
 	// --------------------------------------------------------------------------------------------
 	//3) Setup legs
 	// Legs are init left to right, top to bottom :
-	//
-	//    Leg1    front     Leg2
-	// --02--01--00----03--04--05--
-	//           |      |
-	//    Leg2   |      |   Leg3
-	// --08--07--06----09--10--11--
+	// X
+	// |     Leg1    front     Leg2
+	// |  --02--01--00----03--04--05--
+	// |            |      |
+	// |     Leg2   |      |   Leg3
+	// |  --08--07--06----09--10--11--
+	// |_______________________________Y
 	//
 	//  - Add each leg individually and then add joint to leg from top to bottom
 	//  - Each joint must have an adress : driver board index and pin index on the board
@@ -286,45 +286,45 @@ void main_setup()
 	//  - You need to specify the distance between each joints in mm for the inversed kinematic to work
 	//    for each joint, give the distance from the middle of the joint to the middle of the next joint,
 	//	  for the last joint give the distance to the leg tip
-	//  - This doesnt need to be 0.1mm precise, 0.3/4mm of margin is ok. Ex: round up 25.31 to 25.5
+	//  - This doesnt need to be 0.1mm precise, 0.5mm of margin is ok. Ex: round up 25.31 to 25.5
 	//  - The setup is a bit tedious, but it allows you to fine tune each joints with an offset and place place
 	//    joint on target board at target pin
 	/// - SETUP OF A 6_3 walker : 6 legs with 3 joint each
 	/// -- LEG 0 - Board 0 indexes 0, 1 & 2
 	WalkerLeg* leg0 = sWalker->addLeg();
-	leg0->addJoint(0, 0, 0, DIMENTION_JOINT1);
-	leg0->addJoint(0, 1, 0, DIMENTION_JOINT2);
-	leg0->addJoint(0, 2, 0, DIMENTION_JOINT3);
+	leg0->addJoint(0, 0, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
+	leg0->addJoint(0, 1, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
+	leg0->addJoint(0, 2, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
 
 	/// -- LEG 1 - Board 0 indexes 3, 4 & 5
 	WalkerLeg* leg1 = sWalker->addLeg();
-	leg1->addJoint(0, 3, 0, DIMENTION_JOINT1);
-	leg1->addJoint(0, 4, 0, DIMENTION_JOINT2);
-	leg1->addJoint(0, 5, 0, DIMENTION_JOINT3);
+	leg1->addJoint(0, 3, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
+	leg1->addJoint(0, 4, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
+	leg1->addJoint(0, 5, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
 
 	/// -- LEG 2 - Board 0 indexes 6, 7 & 8
 	WalkerLeg* leg2 = sWalker->addLeg();
-	leg2->addJoint(0, 6, 0, DIMENTION_JOINT1);
-	leg2->addJoint(0, 7, 0, DIMENTION_JOINT2);
-	leg2->addJoint(0, 8, 0, DIMENTION_JOINT3);
+	leg2->addJoint(0, 6, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
+	leg2->addJoint(0, 7, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
+	leg2->addJoint(0, 8, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
 
 	/// -- LEG 3 - Board 0 indexes 9, 10 & 11
 	WalkerLeg* leg3 = sWalker->addLeg();
-	leg3->addJoint(0, 9, 0, DIMENTION_JOINT1);
-	leg3->addJoint(0, 10, 0, DIMENTION_JOINT2);
-	leg3->addJoint(0, 11, 0, DIMENTION_JOINT3);
+	leg3->addJoint(0, 9, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
+	leg3->addJoint(0, 10, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
+	leg3->addJoint(0, 11, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
 
 	/// -- LEG 4 - Board 0 indexes 12, 13 & 14
 	WalkerLeg* leg4 = sWalker->addLeg();
-	leg4->addJoint(0, 12, 0, DIMENTION_JOINT1);
-	leg4->addJoint(0, 13, 0, DIMENTION_JOINT2);
-	leg4->addJoint(0, 14, 0, DIMENTION_JOINT3);
+	leg4->addJoint(0, 12, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
+	leg4->addJoint(0, 13, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
+	leg4->addJoint(0, 14, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
 
 	/// -- LEG 5 - Board 0 index 15 & board 1 indexes 0 & 1
 	WalkerLeg* leg5 = sWalker->addLeg();
-	leg5->addJoint(0, 15, 0, DIMENTION_JOINT1);
-	leg5->addJoint(1, 0, 0, DIMENTION_JOINT2);
-	leg5->addJoint(1, 1, 0, DIMENTION_JOINT3);
+	leg5->addJoint(0, 15, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
+	leg5->addJoint(1, 0, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
+	leg5->addJoint(1, 1, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
 
 	// --------------------------------------------------------------------------------------------
 	//4) Load default position
@@ -335,9 +335,7 @@ void main_setup()
 	//5) Test legs, bip or do some shit to show that the walker is ok
 	// - https://github.com/AnonymousAlly/Arduino-Music-Codes
 	for (uint8 i = 0; i < sWalker->getLegCount(); i++)
-	{
 		sWalker->getLeg(i)->test(); //Test move
-	}
 }
 
 void main_loop()

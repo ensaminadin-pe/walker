@@ -33,4 +33,5 @@ HEADERS += \
     radio.h \
     beeper.h \
     fabrik2d.h \
+    kinematic.h
     movement.h

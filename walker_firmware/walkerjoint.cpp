@@ -2,15 +2,24 @@
 #include "walker.h"
 #include "servodriver.h"
 
-WalkerJoint::WalkerJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance)
+WalkerJoint::WalkerJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance, KinematicAxis _rotation_axis, float _angle)
 {
+	// Config
 	driver_board = _driver_board;
 	driver_index = _driver_index;
 	offset = _offset;
 	distance = _distance;
+	// Kinematics
+	kinematic_distance = (float)((uint16)(distance * 10.0f)); //mm to rounded 10th of mm
+	rotation_axis = _rotation_axis;
+	base_angle = _angle;
+	computed_angle = base_angle;
+	plane_x = 0.0f;
+	plane_y = 0.0f;
+	// Running
+	running = false;
 	current_position = 0;
 	target_position = 0;
-	running = false;
 	movement_done = true;
 }
 
@@ -65,6 +74,17 @@ void WalkerJoint::toggle(uint8 toggle)
 		running = !running; //Nothing specified, just toggle it
 	else
 		running = (toggle == 1); //Something specified, set to true or false
+}
+
+/**
+ * @brief WalkerJoint::setKinematicPosition Set position X/Y in the plane used by the kinematic algorithm
+ * @param x
+ * @param y
+ */
+void WalkerJoint::setKinematicPosition(float x, float y)
+{
+	plane_x = x;
+	plane_y = y;
 }
 
 /**

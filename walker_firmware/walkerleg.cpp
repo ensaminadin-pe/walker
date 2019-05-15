@@ -1,5 +1,6 @@
 #include "walkerleg.h"
 #include "arduinopolyfill.h"
+#include "kinematic.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -31,10 +32,10 @@ void WalkerLeg::freeJoints()
 /**
  * @brief WalkerLeg::addJoint Add a new joint
  */
-WalkerJoint* WalkerLeg::addJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance)
+WalkerJoint* WalkerLeg::addJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance, KinematicAxis _rotation_axis, float _angle)
 {
 	//1) Crate new joint
-	WalkerJoint* joint = new WalkerJoint(_driver_board, _driver_index, _offset, _distance);
+	WalkerJoint* joint = new WalkerJoint(_driver_board, _driver_index, _offset, _distance, _rotation_axis, _angle);
 	joint_count++;
 
 	//2) Resize joint storage
@@ -48,6 +49,13 @@ WalkerJoint* WalkerLeg::addJoint(uint8 _driver_board, uint8 _driver_index, uint1
 	//3) Store new joint
 	_joints[joint_count - 1] = joint;
 	joints = _joints;
+
+	//4) Add joint to leg kinematic
+	Fabrik2D* kinematic = getKinematic(joint->getAxis());
+	if (!kinematic) // Missing axis
+		return joint;
+	kinematic->addJoint(joint);
+
 	return joint;
 }
 
@@ -65,8 +73,6 @@ void WalkerLeg::updateJoints(unsigned long diff)
 		if (joints[i]->updateServoPosition(diff))
 		{ //Movement is done, load next target position
 			/// - TODO - LOAD NEXT TARGET POSITION
-			//float target_position = ?;
-			//joints[i]->setTargetPosition(target_position);
 		}
 	}
 }
@@ -116,4 +122,15 @@ WalkerJoint* WalkerLeg::getJoint(uint8 index)
 	if (!joints || index > joint_count - 1)
 		return NULL;
 	return joints[index];
+}
+
+/**
+ * @brief WalkerLeg::getKinematic Get Fabrik2D kinematic for given axis
+ * @param axis
+ */
+Fabrik2D* WalkerLeg::getKinematic(KinematicAxis axis)
+{
+	if (axis == KINEMATIC_AXIS_UNDEFINED)
+		return NULL;
+	return &kinematics[(uint8)axis + 1];
 }
