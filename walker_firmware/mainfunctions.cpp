@@ -11,6 +11,21 @@
 	#include "stdpolyfill.h"
 #endif
 /*
+ Hardware used for default setup
+ - MG92B servos (18 for my 6x3)
+		https://www.aliexpress.com/item/10pcs-TowerPro-MG92B-Digital-Servo-Motor-Metal-Gear-3-5kg-cm-High-Torque-Double-Bearing-For/32255216023.html
+		~5.6€/u, expensive but 3.5kg/cm and very small
+ - ESP8266-E12 NodeMCU V3
+		~5-6€/u, huge upgrade from an arduino for super low price : 80MHz, 4Mb of flash & 32Kb RAM
+				 Regular ATmega328 is 16MHz, 32Kb of flash, 2Kb of RAM :/
+ - PCA9685 boards (2 for my walker)
+		https://www.aliexpress.com/item/16-Channel-12-bit-PWM-Servo-Driver-I2C-interface-PCA9685-module-for-arduino-or-Raspberry-pi/32718274859.html
+		1.4€/u, cheap as dirt
+ - Mini 360 DC-DC buck converter
+		https://www.aliexpress.com/item/10PCS-LOT-Mini360-DC-DC-Buck-Converter-Step-Down-Module-4-75V-23V-to-1V-17V/32411214887.html
+		2.48€/10pcs, wot?, one for each leg of the walker, handle 1.8A of regular output and peaks up to 3A
+ - NRF24 regular radio transmitter
+		~ 1€/u, range of ~20m with 1 wall max, might get a stronger one
  ----- V2 -----
 Implement inversed kinematics
 Fuck gaits
@@ -66,6 +81,10 @@ Rewrite movement update
 	if Movement struct is repetable, reset and load first Position
 
  ----- V3 -----
+// Edit :
+// - Overall i really want to do this, but for a later incrementation
+// - Now everything run on a single ESP8266 board that coast ~5€, this setup will require wayyyy more boards, money and time
+
 Separate muscle from brain
 	Add raspberry pi as main brainbox that tell arduinos what to do
 	Rewrite most of the program on a raspberry pi in Python
@@ -261,11 +280,10 @@ void main_setup()
 	//    Leg2   |      |   Leg3
 	// --08--07--06----09--10--11--
 	//
-	// Leg is specified by :
-	//  - index and number of joints
-	//  - each joint must have an adress : board & index
-	//  - servos are not totally centered, you can setup a small pulse offset to set the servo at an exact 0 position
-	//  - you need to specify the distance between each joints in mm for the inversed kinematic to work
+	//  - Add each leg individually and then add joint to leg from top to bottom
+	//  - Each joint must have an adress : driver board index and pin index on the board
+	//  - Servos are not totally centered, you can setup a small pulse offset to set the servo at an exact 0 position
+	//  - You need to specify the distance between each joints in mm for the inversed kinematic to work
 	//    for each joint, give the distance from the middle of the joint to the middle of the next joint,
 	//	  for the last joint give the distance to the leg tip
 	//  - This doesnt need to be 0.1mm precise, 0.3/4mm of margin is ok. Ex: round up 25.31 to 25.5

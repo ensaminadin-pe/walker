@@ -32,4 +32,5 @@ HEADERS += \
     wiinunchuck.h \
     radio.h \
     beeper.h \
-    fabrik2d.h
+    fabrik2d.h \
+    movement.h
