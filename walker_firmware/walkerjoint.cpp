@@ -39,13 +39,25 @@ bool WalkerJoint::updateServoPosition(unsigned long diff)
 	if (!running)
 		return movement_done;
 
-	//2) Calculate current position
-	/// - TODO - UPDATE current_position WITH CORRECT MOVEMENT RATE
+	//2) Check that we are within tolerance range
+	/// - TODO - Define a better tolerance
+	float position_diff = current_position - target_position;
+	if (position_diff < 0)
+		position_diff *= -1;
+	if (position_diff < 0.1)
+		current_position = target_position;
 
-	//3) Update servo position
+	//3) Update current position
+	/// - TODO - UPDATE current_position WITH CORRECT MOVEMENT RATE
+	if (current_position > target_position)
+		current_position -= 0.1f;
+	else if (current_position < target_position)
+		current_position += 0.1f;
+
+	//4) Update servo position if there is something to update
 	setServoPosition(current_position);
 
-	//4) Check if reached target position
+	//5) Check if reached target position
 	movement_done = (current_position == target_position);
 	if (movement_done)
 		running = false;

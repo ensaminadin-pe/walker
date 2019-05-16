@@ -112,7 +112,7 @@ Separate muscle from brain
 				1	0-180					(rotation chain1 angle2)
 				1	0-180					(rotation chain1 angle3)
 				1	0						(chain separator)
-				For current 6-3 configuration, a single packet withcurrent positions and next position will weight 54 bytes.
+				For current 6-3 configuration, a single packet with current positions and next position will weight 54 bytes.
 				Classic serial port speed is 54kbit/s, or 6.75Kbytes/s or 112bytes/20ms, wich is our main movement update rate.
 				We have a huge margin for communication with this system, movement instruction will be sent every 250/500ms
 				We could send the 4/5 next movements and queue them in the controller.
@@ -331,7 +331,22 @@ void main_setup()
 
 	// --------------------------------------------------------------------------------------------
 	//4) Load default position
-	// - https://github.com/henriksod/Fabrik2DArduino
+	// How to make it move
+	// We have an animation structure, we can setup an animation dictionary
+	// Current animation management is in Walker
+	//	- pointer to current animation
+	//  - store at wich frame index we are
+	//  - when a leg is done, preload next frame
+	//		- if last frame, load first frame if movement, else load default position
+	//  - when all legs are done, increase frame index or reset it
+	//  !- change movement
+	//  - pointer to next animation
+	//  - on movement update, before everything else, check if pointer is not empty
+	//  - if not empty :
+	//		- reset frame index
+	//		- load first frame in every legs
+
+
 	/// sWalker->setPosition(sPositionsDictionary->getDefault());
 	/// sWalker->initPosition();
 	// --------------------------------------------------------------------------------------------

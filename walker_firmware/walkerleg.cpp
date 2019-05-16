@@ -64,18 +64,21 @@ WalkerJoint* WalkerLeg::addJoint(uint8 _driver_board, uint8 _driver_index, uint1
  * @brief WalkerLeg::updateJoints Update joint positions
  * @param diff
  */
-void WalkerLeg::updateJoints(unsigned long diff)
+bool WalkerLeg::updateJoints(unsigned long diff)
 {
+	//1) Check if we have joints to update at all
 	if (!joints || joint_count == 0)
-		return;
+		return false;
 
+	//2) Update every joints and check if all the joints have reached their destinations
+	bool movement_done = true;
 	for (uint8 i = 0; i < joint_count; i++)
 	{
-		if (joints[i]->updateServoPosition(diff))
-		{ //Movement is done, load next target position
-			/// - TODO - LOAD NEXT TARGET POSITION
-		}
+		if (!joints[i]->updateServoPosition(diff))
+			movement_done = false;
 	}
+
+	return movement_done;
 }
 
 /**

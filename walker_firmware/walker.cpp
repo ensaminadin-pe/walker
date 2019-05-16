@@ -11,6 +11,9 @@ Walker::Walker()
 	speed_multiplier	= 1.0f;
 	leg_count			= 0;
 	update_timer		= UPDATE_SPEED;
+
+	next_animation		= NULL;
+	current_animation	= NULL;
 }
 
 Walker::~Walker()
@@ -89,6 +92,20 @@ WalkerLeg* Walker::addLeg()
 	return leg;
 }
 
+/**
+ * @brief Walker::loadNextFrameFor load next animation frame for
+ * @param leg_index
+ */
+void Walker::loadFrameFor(uint8 frame_index, uint8 leg_index)
+{
+	//1) Check leg and frame validity
+	if (!legs || leg_index > leg_count - 1 || !current_animation || frame_index > current_animation->frame_count - 1)
+		return;
+
+	//2) Get point in target frame for target leg
+	current_animation->
+}
+
 /* ------------------------------------------- */
 /* ------------   MAIN UPDATE   -------------- */
 /* ------------------------------------------- */
@@ -109,18 +126,50 @@ void Walker::update(unsigned long diff)
 			return;
 
 		//3) Check for movement change
-		/// - TODO - CHECK AND LOAD NEXT MOVEMENT
+		if (next_animation != NULL)
+		{
+			current_frame = 0;
+			current_animation = next_animation;
+			/// - TODO - Load first frame in legs
+		}
 
 		//4) Update joint positions
+		bool movement_done = true;
 		for (uint8 i = 0; i < leg_count; i++)
 		{
 			if (!legs[i])
 				continue;
-			legs[i]->updateJoints(diff);
+			if (legs[i]->updateJoints(diff))
+			{
+				/// - TODO - Load next movement on target leg
+			}
+			else
+				movement_done = false;
+		}
+
+		//5) Go to next frame if all the legs have finished their current movement
+		if (movement_done)
+		{
+			/// - TODO - Hangle next frame change/loop & movement exit on certain cases
+			//current_frame++;
 		}
 	}
 	else
 		update_timer -= diff;
+}
+
+/**
+ * @brief Walker::setNextAnimation Set the next animation to be played
+ * @param animation
+ */
+void Walker::setNextAnimation(Animation *animation)
+{
+	//1) Check if we are not trying to load comething already here
+	if (current_animation == animation || next_animation == animation)
+		return;
+
+	//2) Set the next animation
+	next_animation = animation;
 }
 
 /* ------------------------------------------- */
