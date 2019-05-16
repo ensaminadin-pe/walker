@@ -258,7 +258,7 @@ void updateMovements(unsigned long time_diff)
 
 void main_setup()
 { //Arduino like setup
-	//printf("%d\n", sizeof(move_6_3_forward_walk_positions));
+	//Get frame 2 of 6_3 forwrd walk
 	/// - Setup your configurations in the config.h file
 	//1) Setup remote
 	sRadio->setup(RADIO_PIN, RADIO_ADRESS, RADIO_RECEIVE); //Radio data on pin 10, can be anything

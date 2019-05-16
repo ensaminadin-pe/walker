@@ -89,6 +89,14 @@ void WalkerJoint::toggle(uint8 toggle)
 }
 
 /**
+ * @brief WalkerJoint::updateTargetPosition Update target position using the computed angle
+ */
+void WalkerJoint::updateTargetPosition()
+{
+	//Convert computed angle to target servo position
+}
+
+/**
  * @brief WalkerJoint::setKinematicPosition Set position X/Y in the plane used by the kinematic algorithm
  * @param x
  * @param y

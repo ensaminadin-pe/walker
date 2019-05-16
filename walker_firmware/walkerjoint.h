@@ -22,6 +22,7 @@ class WalkerJoint
 		float			getBaseAngle()		{ return base_angle; }
 		float			getComputedAngle()	{ return computed_angle; }
 		void			setComputedAngle(float angle) { computed_angle = angle; }
+		void			updateTargetPosition();
 		void			setKinematicPosition(float x, float y);
 		float			getPlaneX()			{ return plane_x; }
 		void			setPlaneX(float x)	{ plane_x = x; }

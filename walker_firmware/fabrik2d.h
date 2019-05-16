@@ -8,6 +8,8 @@
 #endif
 #include "walkerjoint.h"
 
+#define RADIAN_TO_DEGREE_FACTOR 57.2958 //1rad = 57.2958°
+
 class Fabrik2D
 {
 	/// - Original from https://github.com/henriksod/Fabrik2DArduino
@@ -17,22 +19,25 @@ class Fabrik2D
 	/// I also wanted to be precise up to 0.1mm in the calculations, so mesures are in
 	/// 10th of millimeters and not millimeters. Its pretty much just multiplied by 10 and put in a uint16
 	/// so the theorical maximum distance between two joints is 6.5535 meter. If you are piloting a
-	/// walker that big with this library, i'm kinda proud but mostly scared.
+	/// walker that big with this library, i'll be kinda proud but mostly scared.
 	public:
 		Fabrik2D(float _tolerance = 10.0f);
 		~Fabrik2D();
 		// - Setup methods
-		bool addJoint(WalkerJoint* joint);
-		WalkerJoint* getJoint(uint8 joint_index);
+		bool			addJoint(WalkerJoint* joint);
+		WalkerJoint*	getJoint(uint8 joint_index);
 		// - Main methods
-		bool reachFor(float target_x, float target_y);
-		void setTolerance(float _tolerance);
+		bool			reachFor(float target_x, float target_y);
+		void			setTolerance(float _tolerance);
 	private:
-		void updateJointAngles();
-		void clearChain();
-		float get2dDistance(float x1, float y1, float x2, float y2);
-		void placeNextJoint(WalkerJoint* source, WalkerJoint* target);
-		void relocateJoint(WalkerJoint* joint, float target_x, float target_y, float distance);
+		// - Methods
+		void	updateJointAngles();
+		void	clearChain();
+		float	get2dDistance(float x1, float y1, float x2, float y2);
+		void	placeNextJoint(WalkerJoint* source, WalkerJoint* target);
+		void	relocateJoint(WalkerJoint* joint, float target_x, float target_y, float distance);
+		float	computeAngleFor(float x, float y);
+		float	radianToDegree(float radian);
 		// - Properties
 		uint8			joint_count;	//Number of joints
 		unsigned long	chain_length;	//Total chain lenght

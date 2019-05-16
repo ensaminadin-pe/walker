@@ -103,7 +103,7 @@ void Walker::loadFrameFor(uint8 frame_index, uint8 leg_index)
 		return;
 
 	//2) Get point in target frame for target leg
-	current_animation->
+	//current_animation->
 }
 
 /* ------------------------------------------- */

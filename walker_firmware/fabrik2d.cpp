@@ -151,7 +151,7 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 		//2.1) Stage 1 : Backward search - move points from last to first
 		// - Move last point on the target point
 		joint_chain[joint_count - 1]->setKinematicPosition(target_x, target_y);
-		// - Update every joints, starting from the one before last
+		// - Update every joints, starting from the one before last and going backward
 		// - Relocate each joints to a point between their current location and their next joint location
 		for (int i = joint_count - 2; i >= 0; i--)
 			relocateJoint(joint_chain[i], joint_chain[i + 1]->getPlaneX(), joint_chain[i + 1]->getPlaneY(), joint_chain[i]->getKinematicDistance());
@@ -159,7 +159,7 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 		//2.2) Stage 2 : Forward search - move points from first to last
 		// - Move first point to the origin point
 		joint_chain[0]->setKinematicPosition(0.0f, 0.0f);
-		// - Update every joints, starting from the second
+		// - Update every joints, starting from the second and going forward
 		// - Relocate each joints to a point between their current location and their previous joint location
 		for (int i = 1; i < joint_count; i++)
 			relocateJoint(joint_chain[i], joint_chain[i - 1]->getPlaneX(), joint_chain[i - 1]->getPlaneY(), joint_chain[i - 1]->getKinematicDistance());
@@ -171,7 +171,7 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 			tolerance += (tolerance / 4); //Not close enought, increase tolerance a little
 	}
 
-	//3) Update joint angles in the chains
+	//3) Update joint target angles in the chains
 	updateJointAngles();
 
 	return true;
@@ -197,13 +197,13 @@ void Fabrik2D::updateJointAngles()
 		return;
 
 	//1) Update first joint angle
-	float found_angle = atan2(joint_chain[1]->getPlaneX(), joint_chain[1]->getPlaneY());
+	float found_angle = computeAngleFor(joint_chain[1]->getPlaneX(), joint_chain[1]->getPlaneY());
 	joint_chain[0]->setComputedAngle(found_angle);
 
 	//2) Update every other joint angles, starting with the second joint and skipping the last tip placeholder joint
 	for (uint8 i = 1; i < joint_count - 1; i++)
 	{
-		found_angle = atan2(
+		found_angle = computeAngleFor(
 			joint_chain[i + 1]->getPlaneY() - joint_chain[i]->getPlaneY(),
 			joint_chain[i + 1]->getPlaneX() - joint_chain[i]->getPlaneX()
 		) - found_angle;
@@ -268,4 +268,28 @@ void Fabrik2D::relocateJoint(WalkerJoint *joint, float target_x, float target_y,
 	//3) Use the ratio to relocate joint point
 	joint->setPlaneX(((1.0f - distance_ratio) * joint->getPlaneX()) + (distance_ratio * target_x));
 	joint->setPlaneY(((1.0f - distance_ratio) * joint->getPlaneY()) + (distance_ratio * target_y));
+}
+
+/**
+ * @brief Fabrik2D::computeAngleFor Compute a joint angle from two positions
+ * @param x
+ * @param y
+ * @return
+ */
+float Fabrik2D::computeAngleFor(float x, float y)
+{
+	return radianToDegree(atan2(x, y));
+}
+
+/**
+ * @brief Fabrik2D::radianToDegree Convert radian to dregrees
+ * @param radian
+ * @return
+ */
+float Fabrik2D::radianToDegree(float radian)
+{
+	while (radian >= 6.29f) //Remove extra to stay between 0 and 360°, should never happen but whatever
+		radian -= 6.29f;
+
+	return radian *= RADIAN_TO_DEGREE_FACTOR;
 }
