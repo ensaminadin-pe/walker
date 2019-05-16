@@ -1,6 +1,9 @@
 #include "config.h"
 #include "beeper.h"
 #include "arduinopolyfill.h"
+#ifndef IS_QT
+	#include "Arduino.h"
+#endif
 
 Beeper::Beeper()
 {

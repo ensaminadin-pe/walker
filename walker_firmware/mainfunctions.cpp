@@ -1,4 +1,4 @@
-#include "movement.h"
+#include "animation_dictionary_6_3.h"
 
 #include "mainfunctions.h"
 #include "kinematic.h"
@@ -258,20 +258,7 @@ void updateMovements(unsigned long time_diff)
 
 void main_setup()
 { //Arduino like setup
-	PointList2 plist1[] {
-		//					LEG 1				 LEG2				LEG3				LEG4				LEG5				LEG6
-		//				X	   Y     Z
-		/* Frame 1*/ {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
-		/* Frame 2*/ {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
-		/* Frame 3*/ {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
-		/* Frame 4*/ {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
-	};
-
-	PointList* pa = &plist1[0];
-
-	printf("Plist1 = %d\n", pa->getSize());
-
-
+	//printf("%d\n", sizeof(move_6_3_forward_walk_positions));
 	/// - Setup your configurations in the config.h file
 	//1) Setup remote
 	sRadio->setup(RADIO_PIN, RADIO_ADRESS, RADIO_RECEIVE); //Radio data on pin 10, can be anything

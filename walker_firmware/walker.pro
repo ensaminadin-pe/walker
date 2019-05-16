@@ -17,7 +17,7 @@ SOURCES += \
     radio.cpp \
     beeper.cpp \
     fabrik2d.cpp \
-    movement.cpp
+    animation.cpp
 
 HEADERS += \
     walker.h \
@@ -35,6 +35,5 @@ HEADERS += \
     beeper.h \
     fabrik2d.h \
     kinematic.h \
-    movement.h \
-    movement_dictionary_6_3.h
-    movement.h
+    animation.h \
+    animation_dictionary_6_3.h
