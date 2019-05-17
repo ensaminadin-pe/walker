@@ -68,7 +68,20 @@ class Animation
 		Position*		frames;
 		//Methods
 		Position*		getFrame(uint8 frame);
+		Position*		getNextFrame(uint8 current_frame);
+		bool			isLastFrame(uint8 frame_index);
+		uint8			getNextFrameIndex(uint8 current_frame);
 };
+
+class AnimationDictionary
+{
+};
+
+/// ----------------------------------------------------------------
+/// BELOW ARE POSITIONS POINT LISTS SUBCLASSES FOR DIFFERENTS USAGES
+/// BECAUSE I DON'T KNOW HOW TO MAKE AN AUTOMATIC VARIABLE LENGHT
+/// CONST POINT LIST IN C++
+/// ----------------------------------------------------------------
 
 class Position1 : public Position
 {

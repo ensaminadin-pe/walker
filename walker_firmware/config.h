@@ -26,6 +26,7 @@
 #define SERVO_MAX_ANGLE			60.0f
 // Radio
 #define RADIO_ADRESS	123456798
+#define RADIO_TIMEOUT	1500
 #ifdef ARDUINO_ESP8266_NODEMCU
 	#define RADIO_PIN		0 //GPIO0 = D3
 #else

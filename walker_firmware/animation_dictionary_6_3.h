@@ -23,5 +23,6 @@ Animation move_6_3_forward_walk {5, 6, ANIMATION_TYPE_MOVEMENT, (Position*)&move
 
 /// ----- EMOTES
 
+/// ----- DICTIONARY
 
 #endif

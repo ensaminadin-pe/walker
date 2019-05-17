@@ -5,8 +5,8 @@
 #include "walker.h"
 #include "radio.h"
 #include "config.h"
-#include <stdio.h>
 #include "wiinunchuck.h"
+#include <stdio.h>
 
 #ifdef IS_QT
 	#include "arduinopolyfill.h"
@@ -29,6 +29,9 @@
 		2.48€/10pcs, wot?, one for each leg of the walker, handle 1.8A of regular output and peaks up to 3A
  - NRF24 regular radio transmitter
 		~ 1€/u, range of ~20m with 1 wall max, might get a stronger one
+ - Battery
+	Samsung INR18650-30Q 3000mAh - 15A
+	- TBD https://eu.nkon.nl/rechargeable/18650-size/samsung-inr-18650-30q-3000mah.html
  ----- V2 -----
 Implement inversed kinematics
 Fuck gaits
@@ -182,37 +185,13 @@ unsigned long diff()
 	return _diff;
 }
 
-/// - TODO - MOVE MOVEMENT HANDLING TO ANOTHER FILE
-void handleMovement()
+/**
+ * @brief updateMovements This is where you can map the nunchuck datas to actions, i do not know hot ot make it less messy
+ * @param time_diff
+ */
+void updateAction(unsigned long time_diff)
 {
-	unsigned int _movement = 0;
-	if (direction_nunchuck.getJoystickX() > 0)
-		_movement += mapMovementValue(MOVEMENT_RIGHT_LOW, direction_nunchuck.getJoystickX());
-	else
-		_movement += mapMovementValue(MOVEMENT_LEFT_LOW, direction_nunchuck.getJoystickX());
-	if (direction_nunchuck.getJoystickY() > 0)
-		_movement += mapMovementValue(MOVEMENT_UP_LOW, direction_nunchuck.getJoystickY());
-	else
-		_movement += mapMovementValue(MOVEMENT_DOWN_LOW, direction_nunchuck.getJoystickY());
-	movement = _movement;
-}
-
-unsigned int mapMovementValue(unsigned int base, signed short joystick_value)
-{
-	if (joystick_value < 0)
-		joystick_value *= -1;
-	if (joystick_value < MOVEMENT_LOW_THRESHOLD)
-		return 0;
-	if (joystick_value >= MOVEMENT_LOW_THRESHOLD && joystick_value < MOVEMENT_MID_THRESHOLD)
-		return base;
-	if (joystick_value >= MOVEMENT_MID_THRESHOLD && joystick_value < MOVEMENT_HIGH_THRESHOLD)
-		return base * 2;
-	if (joystick_value >= MOVEMENT_HIGH_THRESHOLD)
-		return base * 4;
-}
-
-void updateMovements(unsigned long time_diff)
-{
+	//1) Delay updates
 	if (movement_update_time > time_diff)
 	{
 		movement_update_time -= time_diff;
@@ -220,41 +199,46 @@ void updateMovements(unsigned long time_diff)
 	}
 	movement_update_time = 100;
 
+	//2) Check if we have remote connectivity
 	if (remote_timeout <= time_diff)
 	{ //Lost the remote, go back to idle
 		return;
 	}
 
-	//Choose the gait to run
+	//3) Choose the movement to execute
 	if (direction_nunchuck.cPressed() && direction_nunchuck.zPressed())
 		;//UNK
 	else if (direction_nunchuck.cPressed())
 		;//UNK
-	else if (direction_nunchuck.zPressed())
+	else if (JOYSTICK_MOVEMENT & MOVEMENT_UP_HIGH)
+		;//MOVE FORWARD
+	else if (JOYSTICK_MOVEMENT & MOVEMENT_UP_MID && JOYSTICK_MOVEMENT & MOVEMENT_LEFT_MID)
+		;//MOVE FORWARD LEFT
+	else if (JOYSTICK_MOVEMENT & MOVEMENT_UP_MID && JOYSTICK_MOVEMENT & MOVEMENT_RIGHT_MID)
+		;//MOVE FORWARD RIGHT
+	else if (JOYSTICK_MOVEMENT & MOVEMENT_LEFT_HIGH)
 	{
-		if (movement & MOVEMENT_UP_HIGH)
-			;//MOVE FORWARD
-		else if (movement & MOVEMENT_LEFT_HIGH)
+		if (direction_nunchuck.zPressed())
 			;//STRAFE LEFT
-		else if (movement & MOVEMENT_DOWN_HIGH)
-			;//MOVE BACK
-		else if (movement & MOVEMENT_RIGHT_HIGH)
+		else
+			;//TURN LEFT
+	}
+	else if (JOYSTICK_MOVEMENT & MOVEMENT_RIGHT_HIGH)
+	{
+		if (direction_nunchuck.zPressed())
 			;//STRAFE RIGHT
 		else
-			;//IDLE
+			;//TURN RIGHT
 	}
-	else if (movement & MOVEMENT_UP_HIGH)
-		;//MOVE FORWARD
-	else if (movement & MOVEMENT_LEFT_HIGH)
-		;//TIRN LEFT
-	else if (movement & MOVEMENT_DOWN_HIGH)
+	else if (JOYSTICK_MOVEMENT & MOVEMENT_DOWN_HIGH)
 		;//MOVE BACK
-	else if (movement & MOVEMENT_RIGHT_HIGH)
-		;//TURN RIGHT
+	else if (JOYSTICK_MOVEMENT & MOVEMENT_DOWN_MID && JOYSTICK_MOVEMENT & MOVEMENT_LEFT_MID)
+		;//MOVE BACK LEFT
+	else if (JOYSTICK_MOVEMENT & MOVEMENT_DOWN_MID && JOYSTICK_MOVEMENT & MOVEMENT_RIGHT_MID)
+		;//MOVE BACK RIGHT
 	else
 		;//IDLE
 }
-/// - TODO - MOVE MOVEMENT HANDLING TO ANOTHER FILE
 
 void main_setup()
 { //Arduino like setup
@@ -330,57 +314,31 @@ void main_setup()
 	leg5->addJoint(1, 1, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
 
 	// --------------------------------------------------------------------------------------------
-	//4) Load default position
-	// How to make it move
-	// We have an animation structure, we can setup an animation dictionary
-	// Current animation management is in Walker
-	//	- pointer to current animation
-	//  - store at wich frame index we are
-	//  - when a leg is done, preload next frame
-	//		- if last frame, load first frame if movement, else load default position
-	//  - when all legs are done, increase frame index or reset it
-	//  !- change movement
-	//  - pointer to next animation
-	//  - on movement update, before everything else, check if pointer is not empty
-	//  - if not empty :
-	//		- reset frame index
-	//		- load first frame in every legs
-
-
-	/// sWalker->setPosition(sPositionsDictionary->getDefault());
-	/// sWalker->initPosition();
-	// --------------------------------------------------------------------------------------------
-	//5) Test legs, bip or do some shit to show that the walker is ok
+	//4) Test legs, bip or do some shit to show that the walker is ok
 	// - https://github.com/AnonymousAlly/Arduino-Music-Codes
 	for (uint8 i = 0; i < sWalker->getLegCount(); i++)
 		sWalker->getLeg(i)->test(); //Test move
 
+	// --------------------------------------------------------------------------------------------
+	//5) Init timers
+	update_time = millis() - 5;
+	remote_timeout = RADIO_TIMEOUT;
 }
 
 void main_loop()
 { //Arduino like loop
-	//1) Setup loop diff time
-	if (update_time == 0)
-	{
-		update_time = millis();
-		return;
-	}
-
-	//2) Add control logic here
-	//   - sensor detection and whatnot
+	//1) Update remote control datas
 	uint8* radio_packet = sRadio->update(diff());
-	if (radio_packet && direction_nunchuck.handlePacket((WiiNunchuckPacket*)radio_packet))
-	{ // Has a radio update & packet was correct
-		direction_nunchuck.print();
-		handleMovement();
-		//movement = 4;
-		remote_timeout = 2000;
+	if (radio_packet)
+	{
+		direction_nunchuck.handlePacket((WiiNunchuckPacket*)radio_packet);
+		remote_timeout = RADIO_TIMEOUT; //Just heard from the remote, reset timeout
 	}
 
-	//3) Update gaits with remote infos
-	updateMovements(diff());
+	//2) Update movements
+	updateAction(diff());
 
-	//4) Run walker update loop
+	//3) Run walker update loop
 	sWalker->update(diff());
 	update_time = millis();
 }

@@ -14,6 +14,7 @@ Walker::Walker()
 
 	next_animation		= NULL;
 	current_animation	= NULL;
+	next_frame			= NULL;
 }
 
 Walker::~Walker()
@@ -128,30 +129,49 @@ void Walker::update(unsigned long diff)
 		//3) Check for movement change
 		if (next_animation != NULL)
 		{
+			//Set new animation as current one
 			current_frame = 0;
 			current_animation = next_animation;
-			/// - TODO - Load first frame in legs
+			//Load the first frame and the next frame
+			loadFrame(current_animation->getFrame(0));
+			next_frame = current_animation->getNextFrame(current_frame);
+			//Activate legs
+			toggleLegsRunning(true);
 		}
 
-		//4) Update joint positions
-		bool movement_done = true;
-		for (uint8 i = 0; i < leg_count; i++)
-		{
-			if (!legs[i])
-				continue;
-			if (legs[i]->updateJoints(diff))
+		if (current_animation)
+		{ //Animation update, nothing to update if no animation
+			//4) Update joint positions
+			bool movement_done = true;
+			for (uint8 i = 0; i < leg_count; i++)
 			{
-				/// - TODO - Load next movement on target leg
+				if (!legs[i])
+					continue;
+				if (legs[i]->updateJoints(diff)) //This leg has finished its movement, load the next frame in it
+				{
+					if (next_frame)
+						legs[i]->moveTo(next_frame->getPoint(i));
+				}
+				else
+					movement_done = false;
 			}
-			else
-				movement_done = false;
-		}
 
-		//5) Go to next frame if all the legs have finished their current movement
-		if (movement_done)
-		{
-			/// - TODO - Hangle next frame change/loop & movement exit on certain cases
-			//current_frame++;
+			//5) Go to next frame if all the legs have finished their current movement
+			if (movement_done)
+			{
+				//5.1) Check if animation has a next frame and is loopable
+				if (!next_frame)
+				{ //Reached end of a non loopable animation
+					/// - TBD - Return to an idle position/animation ?
+					return;
+				}
+				//5.2) Go to next frame
+				//Since every legs have reached their targeted position, they already loaded their
+				//next position, just load the next position list
+				current_frame = current_animation->getNextFrameIndex(current_frame);
+				next_frame = current_animation->getNextFrame(current_frame);
+				toggleLegsRunning(true); //activate legs
+			}
 		}
 	}
 	else
@@ -170,6 +190,46 @@ void Walker::setNextAnimation(Animation *animation)
 
 	//2) Set the next animation
 	next_animation = animation;
+}
+
+/**
+ * @brief Walker::loadFrame Load an animation frame into each legs
+ * @param position
+ */
+void Walker::loadFrame(Position *position)
+{
+	//1) Check walker state
+	if (!legs)
+		return;
+
+	//2) Move each legs to target frame positions
+	for (uint8 i = 0; i < leg_count; i++)
+	{
+		if (i >= position->getPointCount())
+			break; //Frame doesn't have enough points
+		if (!legs[i]) //Leg not loaded
+			continue;
+		legs[i]->moveTo(position->getPoint(i));
+	}
+}
+
+/**
+ * @brief Walker::toggleLegsRunning Toggle every leg update on or off
+ * @param state
+ */
+void Walker::toggleLegsRunning(bool state)
+{
+	//1) Check walker state
+	if (!legs)
+		return;
+
+	//2) Toggle every leg state
+	for (uint8 i = 0; i < leg_count; i++)
+	{
+		if (!legs[i]) //Leg not loaded
+			continue;
+		legs[i]->toggleJoints(state);
+	}
 }
 
 /* ------------------------------------------- */

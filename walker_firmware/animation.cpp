@@ -1,4 +1,5 @@
 #include "animation.h"
+#include "animation.h"
 #include "types.h"
 
 Position::~Position()
@@ -69,4 +70,30 @@ Position *Animation::getFrame(uint8 frame)
 			);
 
 	return target_frame;
+}
+
+bool Animation::isLastFrame(uint8 frame_index)
+{
+	return (frame_index == frame_count - 1);
+}
+
+uint8	Animation::getNextFrameIndex(uint8 current_frame)
+{
+	//1) Check if we reached the last frame
+	if (isLastFrame(current_frame))
+	{ //Reached the last frame
+		if (type != ANIMATION_TYPE_MOVEMENT)
+			return current_frame; //This is not a loopable animation
+		return 0;
+	}
+
+	//2) Next frame
+	return current_frame + 1;
+}
+
+Position *Animation::getNextFrame(uint8 current_frame)
+{
+	if (isLastFrame(current_frame))
+		return 0;
+	return getFrame(getNextFrameIndex(current_frame));
 }

@@ -198,7 +198,7 @@ void Fabrik2D::updateJointAngles()
 
 	//1) Update first joint angle
 	float found_angle = computeAngleFor(joint_chain[1]->getPlaneX(), joint_chain[1]->getPlaneY());
-	joint_chain[0]->setComputedAngle(found_angle);
+	joint_chain[0]->setTargetPosition(found_angle);
 
 	//2) Update every other joint angles, starting with the second joint and skipping the last tip placeholder joint
 	for (uint8 i = 1; i < joint_count - 1; i++)
@@ -207,7 +207,7 @@ void Fabrik2D::updateJointAngles()
 			joint_chain[i + 1]->getPlaneY() - joint_chain[i]->getPlaneY(),
 			joint_chain[i + 1]->getPlaneX() - joint_chain[i]->getPlaneX()
 		) - found_angle;
-		joint_chain[i]->setComputedAngle(found_angle);
+		joint_chain[i]->setTargetPosition(found_angle);
 	}
 }
 

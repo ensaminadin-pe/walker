@@ -8,6 +8,7 @@ WalkerLeg::WalkerLeg()
 {
 	joints = NULL;
 	joint_count = 0;
+	current_point = NULL;
 }
 
 WalkerLeg::~WalkerLeg()
@@ -122,6 +123,9 @@ void WalkerLeg::test()
  */
 void WalkerLeg::moveTo(PositionPoint *position)
 {
+	if (position == current_point)
+		return; //Already there
+
 	//We have a 3d point
 	//We have 3 Fabirk2D resolver for each axis
 	//Tricky part is, axis X and Y in the Fabrik2D resolvers are NOT
@@ -140,6 +144,23 @@ void WalkerLeg::moveTo(PositionPoint *position)
 	getKinematic(KINEMATIC_AXIS_X)->reachFor(position->z, position->y);
 	getKinematic(KINEMATIC_AXIS_Y)->reachFor(position->z, position->x);
 	getKinematic(KINEMATIC_AXIS_Z)->reachFor(position->x, position->y);
+	current_point = position;
+}
+
+/**
+ * @brief WalkerLeg::toggleJoints Togle joints active or inactive
+ * @param state
+ */
+void WalkerLeg::toggleJoints(bool state)
+{
+	if (!joints || joint_count == 0)
+		return;
+
+	for (uint8 i = 0; i < joint_count; i++)
+	{
+		if (joints[i])
+			joints[i]->setRunning(state);
+	}
 }
 
 /**

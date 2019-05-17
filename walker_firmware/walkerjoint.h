@@ -16,18 +16,16 @@ class WalkerJoint
 		void			setPosition(float position);
 		void			toggle(uint8 toggle = 2);
 		// - Getter & setters
-		bool			isMovementDone()	{ return movement_done; }
-		float			getKinematicDistance() { return kinematic_distance; }
-		KinematicAxis	getAxis()			{ return rotation_axis; }
-		float			getBaseAngle()		{ return base_angle; }
-		float			getComputedAngle()	{ return computed_angle; }
-		void			setComputedAngle(float angle) { computed_angle = angle; }
-		void			updateTargetPosition();
+		bool			isMovementDone()		{ return movement_done; }
+		float			getKinematicDistance()	{ return kinematic_distance; }
+		KinematicAxis	getAxis()				{ return rotation_axis; }
+		float			getBaseAngle()			{ return base_angle; }
 		void			setKinematicPosition(float x, float y);
-		float			getPlaneX()			{ return plane_x; }
-		void			setPlaneX(float x)	{ plane_x = x; }
-		float			getPlaneY()			{ return plane_y; }
-		void			setPlaneY(float y)	{ plane_y = y; }
+		float			getPlaneX()				{ return plane_x; }
+		void			setPlaneX(float x)		{ plane_x = x; }
+		float			getPlaneY()				{ return plane_y; }
+		void			setPlaneY(float y)		{ plane_y = y; }
+		void			setRunning(bool state)	{ running = state; }
 	private:
 		// - Config properties
 		uint8			driver_board;		//Driver board index

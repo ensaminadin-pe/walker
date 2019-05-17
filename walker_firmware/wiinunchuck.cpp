@@ -25,6 +25,7 @@ bool WiiNunchuck::handlePacket(WiiNunchuckPacket *packet)
 
 	joystick_x = packet->joystick_x;
 	joystick_y = packet->joystick_y;
+	readJoystick();
 	pitch = packet->pitch;
 	roll = packet->roll;
 
@@ -128,4 +129,32 @@ uint8 WiiNunchuck::toUint8(uint16 number)
 	if (number > 255)
 		return 255;
 	return (uint8)number;
+}
+
+void WiiNunchuck::readJoystick()
+{
+	unsigned int _movement = 0;
+	if (joystick_x > 0)
+		_movement += mapMovementValue(MOVEMENT_RIGHT_LOW, joystick_x);
+	else
+		_movement += mapMovementValue(MOVEMENT_LEFT_LOW, joystick_x);
+	if (joystick_y > 0)
+		_movement += mapMovementValue(MOVEMENT_UP_LOW, joystick_y);
+	else
+		_movement += mapMovementValue(MOVEMENT_DOWN_LOW, joystick_y);
+	joystick_movement = _movement;
+}
+
+unsigned int WiiNunchuck::mapMovementValue(unsigned int base, signed short joystick_value)
+{
+	if (joystick_value < 0)
+		joystick_value *= -1;
+	if (joystick_value < MOVEMENT_LOW_THRESHOLD)
+		return 0;
+	if (joystick_value >= MOVEMENT_LOW_THRESHOLD && joystick_value < MOVEMENT_MID_THRESHOLD)
+		return base;
+	if (joystick_value >= MOVEMENT_MID_THRESHOLD && joystick_value < MOVEMENT_HIGH_THRESHOLD)
+		return base * 2;
+	if (joystick_value >= MOVEMENT_HIGH_THRESHOLD)
+		return base * 4;
 }

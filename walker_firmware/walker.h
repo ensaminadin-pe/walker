@@ -26,7 +26,8 @@ class Walker
 		// - Main
 		void			update(unsigned long diff);
 		void			setNextAnimation(Animation* animation);
-		/// - TODO - FUNCTION TO SET NEXT MOVEMENT
+		void			loadFrame(Position* position);
+		void			toggleLegsRunning(bool state);
 	private:
 		//Properties
 		// - Main properties
@@ -38,6 +39,7 @@ class Walker
 		uint8			current_frame;		//Current frame index in animation
 		Animation*		current_animation;	//Running animation
 		Animation*		next_animation;		//Next animation
+		Position*		next_frame;			//Preload the next frame
 		// - Methods
 		void reset();
 		void freeLegs();
