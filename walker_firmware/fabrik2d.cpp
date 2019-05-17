@@ -27,6 +27,7 @@
 #endif
 #include "fabrik2d.h"
 #include "kinematic.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 Fabrik2D::Fabrik2D(float _tolerance)
@@ -79,7 +80,6 @@ bool Fabrik2D::addJoint(WalkerJoint *joint)
 	joint_chain[joint_index] = joint; //Set new joint at its correct position : one before last
 
 	//5) Rebuild joint position for new joint and last joint
-	//4.1) Get previous joint if any
 	if (joint_index > 0) //Origin is at 0;0, no need to check it
 	{
 		placeNextJoint(joint_chain[joint_index - 1], joint); //Update positon x;y of our new joint
@@ -137,9 +137,13 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 	if (joint_count < 2) //Nothing to do with that
 		return false;
 
+	printf("A1\n");
+	printChain();
+
 	//1) Check whether the target is within reach
 	if (chain_length < get2dDistance(0, 0, target_x, target_y))
 	{ // The target is unreachable, move every joint position in a straight line towards it
+		printf("B1 %f\n", get2dDistance(0, 0, target_x, target_y));
 		for (uint8 i = 0; i < joint_count - 2; i++)
 			relocateJoint(joint_chain[i], target_x, target_y, joint_chain[i]->getKinematicDistance());
 	   return false;
@@ -155,6 +159,8 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 		// - Relocate each joints to a point between their current location and their next joint location
 		for (int i = joint_count - 2; i >= 0; i--)
 			relocateJoint(joint_chain[i], joint_chain[i + 1]->getPlaneX(), joint_chain[i + 1]->getPlaneY(), joint_chain[i]->getKinematicDistance());
+		printf("A2\n");
+		printChain();
 
 		//2.2) Stage 2 : Forward search - move points from first to last
 		// - Move first point to the origin point
@@ -163,6 +169,8 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 		// - Relocate each joints to a point between their current location and their previous joint location
 		for (int i = 1; i < joint_count; i++)
 			relocateJoint(joint_chain[i], joint_chain[i - 1]->getPlaneX(), joint_chain[i - 1]->getPlaneY(), joint_chain[i - 1]->getKinematicDistance());
+		printf("A3\n");
+		printChain();
 
 		//2.3) Check distance between last point and target point
 		if (get2dDistance(joint_chain[joint_count - 1]->getPlaneX(), joint_chain[joint_count - 1]->getPlaneY(), target_x, target_y) <= tolerance)
@@ -170,6 +178,8 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 		else
 			tolerance += (tolerance / 4); //Not close enought, increase tolerance a little
 	}
+
+	printf("A4\n");
 
 	//3) Update joint target angles in the chains
 	updateJointAngles();
@@ -188,6 +198,12 @@ void Fabrik2D::setTolerance(float _tolerance)
 	tolerance = _tolerance;
 }
 
+void Fabrik2D::printChain()
+{
+	for (uint8 i = 0; i < joint_count; i++)
+		printf("%u %f %f;%f\n", i, joint_chain[i]->getKinematicDistance(), joint_chain[i]->getPlaneX(), joint_chain[i]->getPlaneY());
+}
+
 /**
  * @brief Fabrik2D::updateJointAngles Update target angles in joints using current chain coordinates
  */
@@ -198,6 +214,7 @@ void Fabrik2D::updateJointAngles()
 
 	//1) Update first joint angle
 	float found_angle = computeAngleFor(joint_chain[1]->getPlaneX(), joint_chain[1]->getPlaneY());
+	printf("0 %f;%f = %f\n", joint_chain[0]->getPlaneX(), joint_chain[0]->getPlaneY(), found_angle);
 	joint_chain[0]->setTargetPosition(found_angle);
 
 	//2) Update every other joint angles, starting with the second joint and skipping the last tip placeholder joint
@@ -208,6 +225,7 @@ void Fabrik2D::updateJointAngles()
 			joint_chain[i + 1]->getPlaneX() - joint_chain[i]->getPlaneX()
 		) - found_angle;
 		joint_chain[i]->setTargetPosition(found_angle);
+		printf("%u %f;%f = %f\n", i, joint_chain[i]->getPlaneX(), joint_chain[i]->getPlaneY(), found_angle);
 	}
 }
 
@@ -246,8 +264,8 @@ float Fabrik2D::get2dDistance(float x1, float y1, float x2, float y2)
  */
 void Fabrik2D::placeNextJoint(WalkerJoint *source, WalkerJoint *target)
 {
-	target->setPlaneX(source->getKinematicDistance() * cos(source->getBaseAngle()));
-	target->setPlaneY(source->getKinematicDistance() * sin(source->getBaseAngle()));
+	target->setPlaneX(source->getPlaneX() + (source->getKinematicDistance() * cos(source->getBaseAngle())));
+	target->setPlaneY(source->getPlaneY() + (source->getKinematicDistance() * sin(source->getBaseAngle())));
 }
 
 /**
@@ -262,12 +280,12 @@ void Fabrik2D::relocateJoint(WalkerJoint *joint, float target_x, float target_y,
 	//1) Get distance between joint and point
 	float current_distance = get2dDistance(joint->getPlaneX(), joint->getPlaneY(), target_x, target_y);
 
-	//2) Get distance ration between current distance and required new distance
+	//2) Get distance ratio between current distance and required new distance
 	float distance_ratio = distance / current_distance;
 
 	//3) Use the ratio to relocate joint point
-	joint->setPlaneX(((1.0f - distance_ratio) * joint->getPlaneX()) + (distance_ratio * target_x));
-	joint->setPlaneY(((1.0f - distance_ratio) * joint->getPlaneY()) + (distance_ratio * target_y));
+	joint->setPlaneX(((1.0f - distance_ratio) * target_x) + (distance_ratio * joint->getPlaneX()));
+	joint->setPlaneY(((1.0f - distance_ratio) * target_y) + (distance_ratio * joint->getPlaneY()));
 }
 
 /**

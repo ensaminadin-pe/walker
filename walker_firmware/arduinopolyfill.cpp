@@ -4,7 +4,7 @@
 	#include <unistd.h>
 	#include <stdio.h>
 
-	#define SHOW_SERVO_DEBUG
+	//#define SHOW_SERVO_DEBUG
 
 	unsigned long millis()
 	{

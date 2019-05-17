@@ -1,6 +1,8 @@
 #include "walkerjoint.h"
 #include "walker.h"
 #include "servodriver.h"
+#include "config.h"
+#include <stdio.h>
 
 WalkerJoint::WalkerJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance, KinematicAxis _rotation_axis, float _angle)
 {
@@ -44,15 +46,17 @@ bool WalkerJoint::updateServoPosition(unsigned long diff)
 	float position_diff = current_position - target_position;
 	if (position_diff < 0)
 		position_diff *= -1;
-	if (position_diff < 0.1)
+	if (position_diff < (SERVO_DEFAULT_MOVEMENT * 2))
 		current_position = target_position;
 
 	//3) Update current position
 	/// - TODO - UPDATE current_position WITH CORRECT MOVEMENT RATE
+	if (current_position != 0.0f && target_position != 0.0f)
+		printf("%f UPDATE SERVO POSITION FROM %f TO %f WITH DIFF %f\n", kinematic_distance, current_position, target_position, position_diff);
 	if (current_position > target_position)
-		current_position -= 0.1f;
+		current_position -= SERVO_DEFAULT_MOVEMENT;
 	else if (current_position < target_position)
-		current_position += 0.1f;
+		current_position += SERVO_DEFAULT_MOVEMENT;
 
 	//4) Update servo position if there is something to update
 	setServoPosition(current_position);

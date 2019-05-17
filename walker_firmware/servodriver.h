@@ -8,6 +8,15 @@
 	#include <Adafruit_PWMServoDriver.h>
 #endif
 
+/*
+ * Pins:
+ *
+ * ESP8266
+ * SDA	D2
+ * SCL	D1
+ *
+ */
+
 #include "types.h"
 
 class ServoDriver

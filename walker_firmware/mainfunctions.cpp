@@ -7,6 +7,7 @@
 #include "config.h"
 #include "wiinunchuck.h"
 #include <stdio.h>
+#include "fabrik2d.h"
 
 #ifdef IS_QT
 	#include "arduinopolyfill.h"
@@ -181,7 +182,10 @@ unsigned long diff()
 {
 	unsigned long _diff = millis() - update_time;
 	if (_diff < 1)
+	{
+		delay(1);
 		return 1;
+	}
 	return _diff;
 }
 
@@ -316,17 +320,32 @@ void main_setup()
 	// --------------------------------------------------------------------------------------------
 	//4) Test legs, bip or do some shit to show that the walker is ok
 	// - https://github.com/AnonymousAlly/Arduino-Music-Codes
+	/*
 	for (uint8 i = 0; i < sWalker->getLegCount(); i++)
 		sWalker->getLeg(i)->test(); //Test move
+	*/
 
 	// --------------------------------------------------------------------------------------------
 	//5) Init timers
 	update_time = millis() - 5;
 	remote_timeout = RADIO_TIMEOUT;
+
+	printf("MAIN TEST\n");
+
+	Fabrik2D fabrik(1.0f);
+	WalkerJoint joint1(0, 0, 0, 1.0f, KINEMATIC_AXIS_X, 0.0f);
+	WalkerJoint joint2(0, 1, 0, 2.0f, KINEMATIC_AXIS_X, 0.0f);
+
+	fabrik.addJoint(&joint1);
+	fabrik.addJoint(&joint2);
+	fabrik.reachFor(7.0f, 10.0f);
+
+	//sWalker->setNextAnimation(&move_6_3_test);
 }
 
 void main_loop()
 { //Arduino like loop
+	return;
 	//1) Update remote control datas
 	uint8* radio_packet = sRadio->update(diff());
 	if (radio_packet)

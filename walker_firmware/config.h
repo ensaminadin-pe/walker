@@ -9,7 +9,7 @@
 // System
 #define DEBUG_ON			//Uncomment this to see debug in the serial monitor
 #define BAUD_RATE		9600//9600 bps
-#define UPDATE_SPEED	20	//Movement update speed, servos will be moved every 20ms (60Hz)
+#define UPDATE_SPEED	20	//Walker update speed, servos will be moved every 20ms (60Hz)
 // Beeper
 #define BEEPER_PIN		9
 // Walker
@@ -24,6 +24,11 @@
 #define SERVO_ANGLE_GRANULARITY	1.0f
 #define SERVO_MIN_ANGLE			-60.0f
 #define SERVO_MAX_ANGLE			60.0f
+#define SERVO_DEFAULT_MOVEMENT	1.0f
+// 0.13sec / 60 deg
+// 2.16ms  / deg
+// Update is every 20ms, so the walker can theorically move 10° per update
+
 // Radio
 #define RADIO_ADRESS	123456798
 #define RADIO_TIMEOUT	1500

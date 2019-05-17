@@ -29,6 +29,8 @@ class Fabrik2D
 		// - Main methods
 		bool			reachFor(float target_x, float target_y);
 		void			setTolerance(float _tolerance);
+		// - Debug
+		void			printChain();
 	private:
 		// - Methods
 		void	updateJointAngles();
@@ -40,7 +42,7 @@ class Fabrik2D
 		float	radianToDegree(float radian);
 		// - Properties
 		uint8			joint_count;	//Number of joints
-		unsigned long	chain_length;	//Total chain lenght
+		float			chain_length;	//Total chain lenght
 		WalkerJoint**	joint_chain;	//Chain of joints to use for kinematic computation
 		KinematicAxis	joints_axis;	//Common axis of joints, defined by the first joint added
 		float			tolerance;		//Tolerable distance to reach

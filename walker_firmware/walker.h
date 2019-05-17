@@ -33,7 +33,7 @@ class Walker
 		// - Main properties
 		WalkerLeg**		legs;				//Walker legs
 		uint8			leg_count;			//Number of legs
-		int16			update_timer;		//Main update timer
+		unsigned long	update_timer;		//Main update timer
 		float			speed_multiplier;	/// - WIP - Movement speed modifier
 		// - Animation properties
 		uint8			current_frame;		//Current frame index in animation

@@ -13,8 +13,8 @@
 
 static unsigned long	update_time;
 static WiiNunchuck		direction_nunchuck;
-unsigned long			movement_update_time;
-unsigned long			remote_timeout;
+static unsigned long	movement_update_time;
+static unsigned long	remote_timeout;
 
 void	main_setup();
 void	main_loop();
