@@ -121,7 +121,7 @@ void WalkerLeg::test()
  * @brief WalkerLeg::moveTo Compute the joint angles to reach the target 3D point
  * @param position
  */
-void WalkerLeg::moveTo(PositionPoint *position)
+void WalkerLeg::moveTo(PositionPoint *position, bool apply)
 {
 	if (position == current_point)
 		return; //Already there
@@ -131,9 +131,9 @@ void WalkerLeg::moveTo(PositionPoint *position)
 	//Tricky part is, axis X and Y in the Fabrik2D resolvers are NOT
 	//the same as the X/Y axis in the 3D point
 	//For the 3D point :
-	//	X axix run threw the front and back of the walker
+	//	X axis run threw the top and bottom
 	//	Y axis run threw the sides of the walker
-	//	Z axis run threw the top and bottom
+	//	Z axis run threw the front and back
 	//For Fabrik2D resolver on axis :
 	//	X : Fabrik axis X = 3DZ & Y = 3DY
 	//	Y : Fabrik axis X = 3DZ & Y = 3DX
@@ -142,9 +142,16 @@ void WalkerLeg::moveTo(PositionPoint *position)
 	//Pass target point correctly to each Farbik2D resolver
 	//Resolver will update the joints
 	getKinematic(KINEMATIC_AXIS_X)->reachFor(position->z, position->y);
-	getKinematic(KINEMATIC_AXIS_Y)->reachFor(position->z, position->x);
+	getKinematic(KINEMATIC_AXIS_Y)->reachFor(position->x, position->z);
 	getKinematic(KINEMATIC_AXIS_Z)->reachFor(position->x, position->y);
 	current_point = position;
+	if (apply)
+	{
+		for (uint8 i = 0; i < joint_count; i++)
+			joints[i]->setPosition(joints[i]->getTargetPosition());
+	}
+
+	toggleJoints(true);
 }
 
 /**

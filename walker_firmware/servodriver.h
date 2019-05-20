@@ -58,7 +58,6 @@ class ServoDriver
 		uint16*	pulse_table;			//Table of pulse width for given granularity
 		float	min_angle;				//Minimum angle to accept on a set action
 		float	max_angle;				//Maximum angle to accept on a set action
-
 		//Methods
 		void clearDrivers();
 };

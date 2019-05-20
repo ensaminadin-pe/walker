@@ -18,16 +18,19 @@
 #define GAIT_SPEED_INCREMENT 0.1f
 // Servos
 #define DRIVER_BOARD_COUNT		2
-#define DRIVER_BOARD_FREQUENCY	60 //60Hz
+#define DRIVER_BOARD_FREQUENCY	120 //60Hz
 #define SERVO_MIN_PULSE			345
 #define SERVO_MAX_PULSE			995
 #define SERVO_ANGLE_GRANULARITY	1.0f
 #define SERVO_MIN_ANGLE			-60.0f
 #define SERVO_MAX_ANGLE			60.0f
-#define SERVO_DEFAULT_MOVEMENT	1.0f
+#define SERVO_DEFAULT_MOVEMENT	2.5f
 // 0.13sec / 60 deg
 // 2.16ms  / deg
 // Update is every 20ms, so the walker can theorically move 10° per update
+// Fabrik
+#define FABRIK2D_MAX_ITERATIONS	10
+#define FABRIK2D_TOLERANCE_INCREASE 0.1f
 
 // Radio
 #define RADIO_ADRESS	123456798

@@ -93,7 +93,7 @@ uint8	Animation::getNextFrameIndex(uint8 current_frame)
 
 Position *Animation::getNextFrame(uint8 current_frame)
 {
-	if (isLastFrame(current_frame))
+	if (isLastFrame(current_frame) && type != ANIMATION_TYPE_MOVEMENT)
 		return 0;
 	return getFrame(getNextFrameIndex(current_frame));
 }

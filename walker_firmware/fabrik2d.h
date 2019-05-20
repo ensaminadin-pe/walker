@@ -38,8 +38,8 @@ class Fabrik2D
 		float	get2dDistance(float x1, float y1, float x2, float y2);
 		void	placeNextJoint(WalkerJoint* source, WalkerJoint* target);
 		void	relocateJoint(WalkerJoint* joint, float target_x, float target_y, float distance);
-		float	computeAngleFor(float x, float y);
-		float	radianToDegree(float radian);
+		float	computeAngleFor(float ax, float ay, float bx, float by, float cx, float cy);
+		float	computeAngleForJoint(uint8 joint_index);
 		// - Properties
 		uint8			joint_count;	//Number of joints
 		float			chain_length;	//Total chain lenght

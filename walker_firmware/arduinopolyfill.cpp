@@ -3,6 +3,8 @@
 	#include <sys/time.h>
 	#include <unistd.h>
 	#include <stdio.h>
+	#include <chrono>
+	#include <thread>
 
 	//#define SHOW_SERVO_DEBUG
 
@@ -15,7 +17,7 @@
 
 	void delay(int ms)
 	{
-		usleep(ms * 1000);
+		std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 	}
 
 	void tone(uint8 pin, uint16 note, uint16 note_time)

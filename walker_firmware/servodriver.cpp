@@ -156,8 +156,10 @@ void ServoDriver::setServo(uint8 board, uint8 index, float angle, uint16 offset)
 	if (angle < min_angle)
 		angle = min_angle;
 
+
+
 	//3) Find correct PWM
-	uint16 pulse_index = (uint16)(angle / pulse_table_granularity);
+	uint16 pulse_index = (uint16)((angle - min_angle) / pulse_table_granularity);
 	if (pulse_index < 0)
 		pulse_index = 0;
 	else if (pulse_index > pulse_table_size - 1)
@@ -179,5 +181,6 @@ void ServoDriver::setServo(uint8 board, uint8 index, float angle, uint16 offset)
 	}
 
 	//5) Set pwm on target servo
+	//printf("SET SERVO %i;%i TO %f (%i)\n", board, index, angle, pulse);
 	drivers[board]->setPWM(index, 0, pulse);
 }

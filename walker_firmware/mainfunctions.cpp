@@ -283,39 +283,45 @@ void main_setup()
 	/// - SETUP OF A 6_3 walker : 6 legs with 3 joint each
 	/// -- LEG 0 - Board 0 indexes 0, 1 & 2
 	WalkerLeg* leg0 = sWalker->addLeg();
-	leg0->addJoint(0, 0, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
-	leg0->addJoint(0, 1, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
-	leg0->addJoint(0, 2, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
+	leg0->addJoint(0, 0, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_X, 0.0f);
+	leg0->addJoint(0, 1, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_Z, 0.0f);
+	leg0->addJoint(0, 2, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_Z, 90.0f);
+	leg0->homeJoints();
 
 	/// -- LEG 1 - Board 0 indexes 3, 4 & 5
 	WalkerLeg* leg1 = sWalker->addLeg();
-	leg1->addJoint(0, 3, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
-	leg1->addJoint(0, 4, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
-	leg1->addJoint(0, 5, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
+	leg1->addJoint(0, 3, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_X, 0.0f);
+	leg1->addJoint(0, 4, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_Z, 0.0f);
+	leg1->addJoint(0, 5, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_Z, 90.0f);
+	leg1->homeJoints();
 
 	/// -- LEG 2 - Board 0 indexes 6, 7 & 8
 	WalkerLeg* leg2 = sWalker->addLeg();
-	leg2->addJoint(0, 6, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
-	leg2->addJoint(0, 7, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
-	leg2->addJoint(0, 8, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
+	leg2->addJoint(0, 6, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_X, 0.0f);
+	leg2->addJoint(0, 7, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_Z, 0.0f);
+	leg2->addJoint(0, 8, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_Z, 90.0f);
+	leg2->homeJoints();
 
 	/// -- LEG 3 - Board 0 indexes 9, 10 & 11
 	WalkerLeg* leg3 = sWalker->addLeg();
-	leg3->addJoint(0, 9, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
-	leg3->addJoint(0, 10, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
-	leg3->addJoint(0, 11, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
+	leg3->addJoint(0, 9, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_X, 0.0f);
+	leg3->addJoint(0, 10, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_Z, 0.0f);
+	leg3->addJoint(0, 11, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_Z, 90.0f);
+	leg3->homeJoints();
 
 	/// -- LEG 4 - Board 0 indexes 12, 13 & 14
 	WalkerLeg* leg4 = sWalker->addLeg();
-	leg4->addJoint(0, 12, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
-	leg4->addJoint(0, 13, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
-	leg4->addJoint(0, 14, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
+	leg4->addJoint(0, 12, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_X, 0.0f);
+	leg4->addJoint(0, 13, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_Z, 0.0f);
+	leg4->addJoint(0, 14, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_Z, 90.0f);
+	leg4->homeJoints();
 
 	/// -- LEG 5 - Board 0 index 15 & board 1 indexes 0 & 1
 	WalkerLeg* leg5 = sWalker->addLeg();
-	leg5->addJoint(0, 15, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_Z, 0.0f);
-	leg5->addJoint(1, 0, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_X, 0.0f);
-	leg5->addJoint(1, 1, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_X, -90.0f);
+	leg5->addJoint(0, 15, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_X, 0.0f);
+	leg5->addJoint(1, 0, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_Z, 0.0f);
+	leg5->addJoint(1, 1, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_Z, 90.0f);
+	leg5->homeJoints();
 
 	// --------------------------------------------------------------------------------------------
 	//4) Test legs, bip or do some shit to show that the walker is ok
@@ -329,23 +335,12 @@ void main_setup()
 	//5) Init timers
 	update_time = millis() - 5;
 	remote_timeout = RADIO_TIMEOUT;
-
-	printf("MAIN TEST\n");
-
-	Fabrik2D fabrik(1.0f);
-	WalkerJoint joint1(0, 0, 0, 1.0f, KINEMATIC_AXIS_X, 0.0f);
-	WalkerJoint joint2(0, 1, 0, 2.0f, KINEMATIC_AXIS_X, 0.0f);
-
-	fabrik.addJoint(&joint1);
-	fabrik.addJoint(&joint2);
-	fabrik.reachFor(7.0f, 10.0f);
-
-	//sWalker->setNextAnimation(&move_6_3_test);
+	delay(500);
+	sWalker->setNextAnimation(&move_6_3_test);
 }
 
 void main_loop()
 { //Arduino like loop
-	return;
 	//1) Update remote control datas
 	uint8* radio_packet = sRadio->update(diff());
 	if (radio_packet)

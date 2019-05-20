@@ -20,7 +20,7 @@ class WalkerLeg
 		bool			updateJoints(unsigned long diff);
 		void			homeJoints();	//Move every joints to 0°
 		void			test();			//Test leg, move each joints and beep
-		void			moveTo(PositionPoint* position);
+		void			moveTo(PositionPoint* position, bool apply = false);
 		void			toggleJoints(bool state);
 		// - Getters
 		// ----------------------------------------

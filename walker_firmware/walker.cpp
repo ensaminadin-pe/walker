@@ -132,6 +132,7 @@ void Walker::update(unsigned long diff)
 			//Set new animation as current one
 			current_frame = 0;
 			current_animation = next_animation;
+			next_animation = 0;
 			//Load the first frame and the next frame
 			loadFrame(current_animation->getFrame(0));
 			next_frame = current_animation->getNextFrame(current_frame);

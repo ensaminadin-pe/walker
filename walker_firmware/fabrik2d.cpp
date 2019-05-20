@@ -27,6 +27,7 @@
 #endif
 #include "fabrik2d.h"
 #include "kinematic.h"
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -137,21 +138,17 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 	if (joint_count < 2) //Nothing to do with that
 		return false;
 
-	printf("A1\n");
-	printChain();
-
 	//1) Check whether the target is within reach
 	if (chain_length < get2dDistance(0, 0, target_x, target_y))
 	{ // The target is unreachable, move every joint position in a straight line towards it
-		printf("B1 %f\n", get2dDistance(0, 0, target_x, target_y));
 		for (uint8 i = 0; i < joint_count - 2; i++)
 			relocateJoint(joint_chain[i], target_x, target_y, joint_chain[i]->getKinematicDistance());
 	   return false;
 	}
 
 	//2) Target is reachable
-	for (uint8 iteration = 0; iteration < 10; iteration++)
-	{ //Execute the algorithm a maximum of 10 times
+	for (uint8 iteration = 0; iteration < FABRIK2D_MAX_ITERATIONS; iteration++)
+	{ //Execute the algorithm a maximum of X times
 		//2.1) Stage 1 : Backward search - move points from last to first
 		// - Move last point on the target point
 		joint_chain[joint_count - 1]->setKinematicPosition(target_x, target_y);
@@ -159,8 +156,6 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 		// - Relocate each joints to a point between their current location and their next joint location
 		for (int i = joint_count - 2; i >= 0; i--)
 			relocateJoint(joint_chain[i], joint_chain[i + 1]->getPlaneX(), joint_chain[i + 1]->getPlaneY(), joint_chain[i]->getKinematicDistance());
-		printf("A2\n");
-		printChain();
 
 		//2.2) Stage 2 : Forward search - move points from first to last
 		// - Move first point to the origin point
@@ -169,17 +164,13 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 		// - Relocate each joints to a point between their current location and their previous joint location
 		for (int i = 1; i < joint_count; i++)
 			relocateJoint(joint_chain[i], joint_chain[i - 1]->getPlaneX(), joint_chain[i - 1]->getPlaneY(), joint_chain[i - 1]->getKinematicDistance());
-		printf("A3\n");
-		printChain();
 
 		//2.3) Check distance between last point and target point
 		if (get2dDistance(joint_chain[joint_count - 1]->getPlaneX(), joint_chain[joint_count - 1]->getPlaneY(), target_x, target_y) <= tolerance)
 			break; //Last point is withing tolerable range of the target point, stop looking
 		else
-			tolerance += (tolerance / 4); //Not close enought, increase tolerance a little
+			tolerance += (tolerance * FABRIK2D_TOLERANCE_INCREASE); //Not close enought, increase tolerance a little
 	}
-
-	printf("A4\n");
 
 	//3) Update joint target angles in the chains
 	updateJointAngles();
@@ -212,21 +203,9 @@ void Fabrik2D::updateJointAngles()
 	if (joint_count < 2)
 		return;
 
-	//1) Update first joint angle
-	float found_angle = computeAngleFor(joint_chain[1]->getPlaneX(), joint_chain[1]->getPlaneY());
-	printf("0 %f;%f = %f\n", joint_chain[0]->getPlaneX(), joint_chain[0]->getPlaneY(), found_angle);
-	joint_chain[0]->setTargetPosition(found_angle);
-
-	//2) Update every other joint angles, starting with the second joint and skipping the last tip placeholder joint
-	for (uint8 i = 1; i < joint_count - 1; i++)
-	{
-		found_angle = computeAngleFor(
-			joint_chain[i + 1]->getPlaneY() - joint_chain[i]->getPlaneY(),
-			joint_chain[i + 1]->getPlaneX() - joint_chain[i]->getPlaneX()
-		) - found_angle;
-		joint_chain[i]->setTargetPosition(found_angle);
-		printf("%u %f;%f = %f\n", i, joint_chain[i]->getPlaneX(), joint_chain[i]->getPlaneY(), found_angle);
-	}
+	for (uint8 i = 0; i < joint_count - 1; i++)
+		joint_chain[i]->setTargetPosition(computeAngleForJoint(i));
+	//printf("%u %f;%f = %f\n", i, joint_chain[i]->getPlaneX(), joint_chain[i]->getPlaneY(), joint_chain[i]->getTargetPosition());
 }
 
 /**
@@ -289,25 +268,77 @@ void Fabrik2D::relocateJoint(WalkerJoint *joint, float target_x, float target_y,
 }
 
 /**
- * @brief Fabrik2D::computeAngleFor Compute a joint angle from two positions
- * @param x
- * @param y
+ * @brief Fabrik2D::computeAngleFor Get angle between three points in degrees
+ * @param ax
+ * @param ay
+ * @param bx
+ * @param by
+ * @param cx
+ * @param cy
  * @return
  */
-float Fabrik2D::computeAngleFor(float x, float y)
-{
-	return radianToDegree(atan2(x, y));
+float Fabrik2D::computeAngleFor(float ax, float ay, float bx, float by, float cx, float cy)
+{ //https://stackoverflow.com/a/3487062
+	//1) Calculate vectors AB and CB
+	float ab_x = bx - ax;
+	float ab_y = by - ay;
+	float cb_x = bx - cx;
+	float cb_y = by - cy;
+
+	//2) Get angle between the three points in radian
+	float radian_angle = atan2((ab_x * cb_y - ab_y * cb_x), (ab_x * cb_x + ab_y * cb_y));
+
+	//3) Return angle in degrees
+	return (radian_angle * 180.0f / 3.14f + 0.5f);
 }
 
 /**
- * @brief Fabrik2D::radianToDegree Convert radian to dregrees
- * @param radian
+ * @brief Fabrik2D::computeAngleFor Compute an angle for a target joint
+ * @param joint_index
  * @return
  */
-float Fabrik2D::radianToDegree(float radian)
+float Fabrik2D::computeAngleForJoint(uint8 joint_index)
 {
-	while (radian >= 6.29f) //Remove extra to stay between 0 and 360°, should never happen but whatever
-		radian -= 6.29f;
+	//1) Check that we can get the angle
+	if (joint_index >= joint_count - 1)
+		return 0.0f;
 
-	return radian *= RADIAN_TO_DEGREE_FACTOR;
+	//2) Get points
+	float previous_x = 0.0f;
+	float previous_y = 0.0f;
+	WalkerJoint* current = joint_chain[joint_index];		//point B
+	WalkerJoint* next = joint_chain[joint_index + 1];		//point C
+
+	if (joint_index == 0)
+	{ //Handle first joint
+		//First joint default angle is 90° : every points are on the Y axis.
+		//to get our angle, we use a fake point on the Y axis
+		previous_x = 0.0f;
+		previous_y = 300.0f;
+	}
+	else
+	{ //Handle other joints
+		WalkerJoint* previous = joint_chain[joint_index - 1];	//point A
+		if (!previous)
+			return 0.0f;
+		previous_x = previous->getPlaneX();
+		previous_y = previous->getPlaneY();
+	}
+
+	if (!current || !next)
+		return 0.0f;
+
+	//3) Get angle
+	float angle = computeAngleFor(previous_x, previous_y,
+								  current->getPlaneX(), current->getPlaneY(),
+								  next->getPlaneX(), next->getPlaneY()
+								  );
+
+	//4) Apply joint offset
+	if (angle < current->getBaseAngle() && angle > 0)
+		angle = - (current->getBaseAngle() - angle);
+	else if (angle > current->getBaseAngle())
+		angle -= current->getBaseAngle();
+
+	return angle;
 }

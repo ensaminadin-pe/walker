@@ -26,6 +26,7 @@ class WalkerJoint
 		float			getPlaneY()				{ return plane_y; }
 		void			setPlaneY(float y)		{ plane_y = y; }
 		void			setRunning(bool state)	{ running = state; }
+		float			getTargetPosition()		{ return target_position; }
 	private:
 		// - Config properties
 		uint8			driver_board;		//Driver board index

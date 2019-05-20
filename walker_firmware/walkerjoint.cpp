@@ -51,8 +51,8 @@ bool WalkerJoint::updateServoPosition(unsigned long diff)
 
 	//3) Update current position
 	/// - TODO - UPDATE current_position WITH CORRECT MOVEMENT RATE
-	if (current_position != 0.0f && target_position != 0.0f)
-		printf("%f UPDATE SERVO POSITION FROM %f TO %f WITH DIFF %f\n", kinematic_distance, current_position, target_position, position_diff);
+	//if (current_position != 0.0f && target_position != 0.0f)
+	//	printf("%f UPDATE SERVO POSITION FROM %f TO %f WITH DIFF %f\n", kinematic_distance, current_position, target_position, position_diff);
 	if (current_position > target_position)
 		current_position -= SERVO_DEFAULT_MOVEMENT;
 	else if (current_position < target_position)
