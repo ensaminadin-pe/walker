@@ -288,6 +288,8 @@ void main_setup()
 	leg0->addJoint(0, 2, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_Z, 90.0f);
 	leg0->homeJoints();
 
+	/*
+
 	/// -- LEG 1 - Board 0 indexes 3, 4 & 5
 	WalkerLeg* leg1 = sWalker->addLeg();
 	leg1->addJoint(0, 3, 0, DIMENTION_JOINT1, KINEMATIC_AXIS_X, 0.0f);
@@ -322,6 +324,7 @@ void main_setup()
 	leg5->addJoint(1, 0, 0, DIMENTION_JOINT2, KINEMATIC_AXIS_Z, 0.0f);
 	leg5->addJoint(1, 1, 0, DIMENTION_JOINT3, KINEMATIC_AXIS_Z, 90.0f);
 	leg5->homeJoints();
+	*/
 
 	// --------------------------------------------------------------------------------------------
 	//4) Test legs, bip or do some shit to show that the walker is ok

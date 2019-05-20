@@ -141,35 +141,36 @@ bool Fabrik2D::reachFor(float target_x, float target_y)
 	//1) Check whether the target is within reach
 	if (chain_length < get2dDistance(0, 0, target_x, target_y))
 	{ // The target is unreachable, move every joint position in a straight line towards it
-		for (uint8 i = 0; i < joint_count - 2; i++)
+		for (uint8 i = 0; i == 0 || i < joint_count - 2; i++)
 			relocateJoint(joint_chain[i], target_x, target_y, joint_chain[i]->getKinematicDistance());
-	   return false;
 	}
+	else
+	{//2) Target is reachable
 
-	//2) Target is reachable
-	for (uint8 iteration = 0; iteration < FABRIK2D_MAX_ITERATIONS; iteration++)
-	{ //Execute the algorithm a maximum of X times
-		//2.1) Stage 1 : Backward search - move points from last to first
-		// - Move last point on the target point
-		joint_chain[joint_count - 1]->setKinematicPosition(target_x, target_y);
-		// - Update every joints, starting from the one before last and going backward
-		// - Relocate each joints to a point between their current location and their next joint location
-		for (int i = joint_count - 2; i >= 0; i--)
-			relocateJoint(joint_chain[i], joint_chain[i + 1]->getPlaneX(), joint_chain[i + 1]->getPlaneY(), joint_chain[i]->getKinematicDistance());
+		for (uint8 iteration = 0; iteration < FABRIK2D_MAX_ITERATIONS; iteration++)
+		{ //Execute the algorithm a maximum of X times
+			//2.1) Stage 1 : Backward search - move points from last to first
+			// - Move last point on the target point
+			joint_chain[joint_count - 1]->setKinematicPosition(target_x, target_y);
+			// - Update every joints, starting from the one before last and going backward
+			// - Relocate each joints to a point between their current location and their next joint location
+			for (int i = joint_count - 2; i >= 0; i--)
+				relocateJoint(joint_chain[i], joint_chain[i + 1]->getPlaneX(), joint_chain[i + 1]->getPlaneY(), joint_chain[i]->getKinematicDistance());
 
-		//2.2) Stage 2 : Forward search - move points from first to last
-		// - Move first point to the origin point
-		joint_chain[0]->setKinematicPosition(0.0f, 0.0f);
-		// - Update every joints, starting from the second and going forward
-		// - Relocate each joints to a point between their current location and their previous joint location
-		for (int i = 1; i < joint_count; i++)
-			relocateJoint(joint_chain[i], joint_chain[i - 1]->getPlaneX(), joint_chain[i - 1]->getPlaneY(), joint_chain[i - 1]->getKinematicDistance());
+			//2.2) Stage 2 : Forward search - move points from first to last
+			// - Move first point to the origin point
+			joint_chain[0]->setKinematicPosition(0.0f, 0.0f);
+			// - Update every joints, starting from the second and going forward
+			// - Relocate each joints to a point between their current location and their previous joint location
+			for (int i = 1; i < joint_count; i++)
+				relocateJoint(joint_chain[i], joint_chain[i - 1]->getPlaneX(), joint_chain[i - 1]->getPlaneY(), joint_chain[i - 1]->getKinematicDistance());
 
-		//2.3) Check distance between last point and target point
-		if (get2dDistance(joint_chain[joint_count - 1]->getPlaneX(), joint_chain[joint_count - 1]->getPlaneY(), target_x, target_y) <= tolerance)
-			break; //Last point is withing tolerable range of the target point, stop looking
-		else
-			tolerance += (tolerance * FABRIK2D_TOLERANCE_INCREASE); //Not close enought, increase tolerance a little
+			//2.3) Check distance between last point and target point
+			if (get2dDistance(joint_chain[joint_count - 1]->getPlaneX(), joint_chain[joint_count - 1]->getPlaneY(), target_x, target_y) <= tolerance)
+				break; //Last point is withing tolerable range of the target point, stop looking
+			else
+				tolerance += (tolerance * FABRIK2D_TOLERANCE_INCREASE); //Not close enought, increase tolerance a little
+		}
 	}
 
 	//3) Update joint target angles in the chains
@@ -205,7 +206,6 @@ void Fabrik2D::updateJointAngles()
 
 	for (uint8 i = 0; i < joint_count - 1; i++)
 		joint_chain[i]->setTargetPosition(computeAngleForJoint(i));
-	//printf("%u %f;%f = %f\n", i, joint_chain[i]->getPlaneX(), joint_chain[i]->getPlaneY(), joint_chain[i]->getTargetPosition());
 }
 
 /**
@@ -335,10 +335,18 @@ float Fabrik2D::computeAngleForJoint(uint8 joint_index)
 								  );
 
 	//4) Apply joint offset
-	if (angle < current->getBaseAngle() && angle > 0)
-		angle = - (current->getBaseAngle() - angle);
-	else if (angle > current->getBaseAngle())
-		angle -= current->getBaseAngle();
+	float base_angle = current->getBaseAngle();
+	if (joints_axis == KINEMATIC_AXIS_X)
+		base_angle = 90.0f;
+	if (angle < base_angle)
+	{
+		if (angle > 0)
+			angle = - (base_angle - angle);
+		else
+			angle += base_angle;
+	}
+	else if (angle > base_angle)
+		angle -= base_angle;
 
 	return angle;
 }

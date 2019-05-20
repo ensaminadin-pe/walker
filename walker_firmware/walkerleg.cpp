@@ -141,8 +141,8 @@ void WalkerLeg::moveTo(PositionPoint *position, bool apply)
 
 	//Pass target point correctly to each Farbik2D resolver
 	//Resolver will update the joints
-	getKinematic(KINEMATIC_AXIS_X)->reachFor(position->z, position->y);
-	getKinematic(KINEMATIC_AXIS_Y)->reachFor(position->x, position->z);
+	getKinematic(KINEMATIC_AXIS_X)->reachFor(position->z > 0 ? 90.0f - position->z : 90.0f + position->z, position->z);
+	//getKinematic(KINEMATIC_AXIS_Y)->reachFor(position->x, position->z);
 	getKinematic(KINEMATIC_AXIS_Z)->reachFor(position->x, position->y);
 	current_point = position;
 	if (apply)
