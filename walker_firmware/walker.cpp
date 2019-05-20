@@ -76,8 +76,7 @@ WalkerLeg *Walker::getLeg(uint8 index)
 WalkerLeg* Walker::addLeg()
 {
 	//1) Create the new leg
-	WalkerLeg* leg = new WalkerLeg();
-	leg_count++;
+	WalkerLeg* leg = new WalkerLeg(leg_count++);
 
 	//2) Resize leg storage
 	WalkerLeg** _legs = (WalkerLeg**)realloc(legs, leg_count * sizeof(WalkerLeg*));

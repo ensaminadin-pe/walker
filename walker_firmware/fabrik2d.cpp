@@ -77,8 +77,8 @@ bool Fabrik2D::addJoint(WalkerJoint *joint)
 		return false;
 
 	//4) Store new joint in chain at correct spot
-	joint_chain[joint_count - 1] = joint_chain[joint_index]; //Last joint is currently at the new joint position, move it
-	joint_chain[joint_index] = joint; //Set new joint at its correct position : one before last
+	joint_chain[joint_count - 1] = joint_chain[joint_index];		//Last joint is currently at the new joint position, move it
+	joint_chain[joint_index] = joint;								//Set new joint at its correct position : one before last
 
 	//5) Rebuild joint position for new joint and last joint
 	if (joint_index > 0) //Origin is at 0;0, no need to check it

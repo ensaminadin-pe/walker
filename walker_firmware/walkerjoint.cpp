@@ -4,13 +4,14 @@
 #include "config.h"
 #include <stdio.h>
 
-WalkerJoint::WalkerJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance, KinematicAxis _rotation_axis, float _angle)
+WalkerJoint::WalkerJoint(uint8 _driver_board, uint8 _driver_index, bool _is_mirror, uint16 _offset, float _distance, KinematicAxis _rotation_axis, float _angle)
 {
 	// Config
 	driver_board = _driver_board;
 	driver_index = _driver_index;
 	offset = _offset;
 	distance = _distance;
+	is_mirror = _is_mirror;
 	// Kinematics
 	kinematic_distance = (float)((uint16)(distance * 10.0f)); //mm to rounded 10th of mm
 	rotation_axis = _rotation_axis;
@@ -66,6 +67,15 @@ bool WalkerJoint::updateServoPosition(unsigned long diff)
 	if (movement_done)
 		running = false;
 	return movement_done;
+}
+
+/**
+ * @brief WalkerJoint::setTargetPosition Set target joint position to reach
+ * @param position
+ */
+void WalkerJoint::setTargetPosition(float position)
+{
+	target_position = is_mirror ? -position : position;
 }
 
 /**

@@ -7,12 +7,12 @@
 class WalkerJoint
 {
 	public:
-		WalkerJoint(uint8 _driver_board = 255, uint8 _driver_index = 255, uint16 _offset = 0, float _distance = 0.0f, KinematicAxis _rotation_axis = KINEMATIC_AXIS_UNDEFINED, float _angle = 0.0f);
+		WalkerJoint(uint8 _driver_board = 255, uint8 _driver_index = 255, bool _is_mirror = false, uint16 _offset = 0, float _distance = 0.0f, KinematicAxis _rotation_axis = KINEMATIC_AXIS_UNDEFINED, float _angle = 0.0f);
 		~WalkerJoint();
 		// - Main udpate
 		bool			updateServoPosition(unsigned long diff);
 		// - Actions methods
-		void			setTargetPosition(float position) { target_position = position; }
+		void			setTargetPosition(float position);
 		void			setPosition(float position);
 		void			toggle(uint8 toggle = 2);
 		// - Getter & setters
@@ -31,6 +31,7 @@ class WalkerJoint
 		// - Config properties
 		uint8			driver_board;		//Driver board index
 		uint8			driver_index;		//Index on the driver board
+		bool			is_mirror;			//Is mirrored relative to the first leg
 		uint16			offset;				//Pulse width offset
 		float			distance;			//Distance to next joint or tip
 		// - Kinematic properties

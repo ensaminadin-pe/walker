@@ -13,7 +13,7 @@ class WalkerLeg
 	public:
 		//Methods
 		// - Constructor/destructor
-		WalkerLeg();
+		WalkerLeg(uint8 _leg_index);
 		~WalkerLeg();
 		// - Main methods
 		WalkerJoint*	addJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance, KinematicAxis _rotation_axis, float _angle);
@@ -28,6 +28,7 @@ class WalkerLeg
 		WalkerJoint*	getJoint(uint8 index);
 	private:
 		// - Properties
+		uint8			leg_index;
 		uint8			joint_count;
 		WalkerJoint**	joints;			//Top to bottom
 		Fabrik2D		kinematics[3];	//0 = X, 1 = Y, 2 = Z

@@ -4,11 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-WalkerLeg::WalkerLeg()
+WalkerLeg::WalkerLeg(uint8 _leg_index)
 {
 	joints = NULL;
 	joint_count = 0;
 	current_point = NULL;
+	leg_index = _leg_index;
 }
 
 WalkerLeg::~WalkerLeg()
@@ -36,7 +37,7 @@ void WalkerLeg::freeJoints()
 WalkerJoint* WalkerLeg::addJoint(uint8 _driver_board, uint8 _driver_index, uint16 _offset, float _distance, KinematicAxis _rotation_axis, float _angle)
 {
 	//1) Crate new joint
-	WalkerJoint* joint = new WalkerJoint(_driver_board, _driver_index, _offset, _distance, _rotation_axis, _angle);
+	WalkerJoint* joint = new WalkerJoint(_driver_board, _driver_index, (leg_index % 2), _offset, _distance, _rotation_axis, _angle);
 	if (!joint)
 		return NULL;
 	joint_count ++;
