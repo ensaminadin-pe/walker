@@ -25,8 +25,10 @@ const Position1 move_6_3_test_positions[] {
 	//				opt							opt_val	delay	LEG 1					LEG 2				LEG 3				LEG 4				LEG 5				LEG 6
 	/* frame  1 */ {POSITION_OPTION_NONE,		0,		0,		{350.0, -600.0, 0.0}},
 	/* frame  1 */ {POSITION_OPTION_NONE,		0,		0,		{250.0, -400.0, -60.0f}},
+	/* frame  1 */ {POSITION_OPTION_NONE,		0,		0,		{350.0, -600.0, -60.0f}},
+	/* frame  1 */ {POSITION_OPTION_NONE,		0,		0,		{350.0, -600.0, 0.0}}
 };
-Animation move_6_3_test {2, 1, ANIMATION_TYPE_MOVEMENT, (Position*)&move_6_3_test_positions[0]};
+Animation move_6_3_test {4, 1, ANIMATION_TYPE_MOVEMENT, (Position*)&move_6_3_test_positions[0]};
 
 /// ----- EMOTES
 

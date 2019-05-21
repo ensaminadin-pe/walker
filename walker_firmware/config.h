@@ -9,7 +9,7 @@
 // System
 #define DEBUG_ON			//Uncomment this to see debug in the serial monitor
 #define BAUD_RATE		9600//9600 bps
-#define UPDATE_SPEED	20	//Walker update speed, servos will be moved every 20ms (60Hz)
+#define UPDATE_SPEED	0	//Walker update speed, servos will be moved every 20ms (60Hz)
 // Beeper
 #define BEEPER_PIN		9
 // Walker
@@ -24,11 +24,12 @@
 #define SERVO_ANGLE_GRANULARITY	1.0f
 #define SERVO_MIN_ANGLE			-60.0f
 #define SERVO_MAX_ANGLE			60.0f
-#define SERVO_DEFAULT_MOVEMENT	2.5f
+#define SERVO_DEFAULT_MOVEMENT	0.60f
 // 0.13sec / 60 deg
 // 2.16ms  / deg
 // Update is every 20ms, so the walker can theorically move 10° per update
 // Fabrik
+#define FABRIK2D_DEFAULT_TOLERANCE 10.0f
 #define FABRIK2D_MAX_ITERATIONS	10
 #define FABRIK2D_TOLERANCE_INCREASE 0.1f
 

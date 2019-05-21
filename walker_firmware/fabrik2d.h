@@ -7,6 +7,7 @@
 	#include "arduinopolyfill.h"
 #endif
 #include "walkerjoint.h"
+#include "config.h"
 
 #define RADIAN_TO_DEGREE_FACTOR 57.2958 //1rad = 57.2958°
 
@@ -21,7 +22,7 @@ class Fabrik2D
 	/// so the theorical maximum distance between two joints is 6.5535 meter. If you are piloting a
 	/// walker that big with this library, i'll be kinda proud but mostly scared.
 	public:
-		Fabrik2D(float _tolerance = 10.0f);
+		Fabrik2D(float _tolerance = FABRIK2D_DEFAULT_TOLERANCE);
 		~Fabrik2D();
 		// - Setup methods
 		bool			addJoint(WalkerJoint* joint);
